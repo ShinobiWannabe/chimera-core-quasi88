@@ -1,0 +1,48 @@
+--- a/src/pc88/pc88main.c
++++ b/src/pc88/pc88main.c
+@@ -9,6 +9,10 @@
+ #include <string.h>
+ #include <time.h>
+ 
++#ifdef CHIMERA_CORE
++void chimera_input_read(void);
++#endif
++
+ #include "quasi88.h"
+ #include "initval.h"
+ #include "fname.h"
+@@ -1614,6 +1618,9 @@
+ 	case 0x0f:
+ 		/* キー入力でリセット */
+ 		disk_ex_drv = 0;
++#ifdef CHIMERA_CORE
++		chimera_input_read();	/* the machine read its controls (Chimera) */
++#endif
+ #ifdef USE_KEYBOARD_BUG /* peach氏提供 */
+ 		{
+ 			int i;
+--- a/src/pc88/soundbd.c
++++ b/src/pc88/soundbd.c
+@@ -17,6 +17,10 @@
+ #include "snddrv.h"
+ #include "suspend.h"
+ 
++#ifdef CHIMERA_CORE
++void chimera_input_read(void);
++#endif
++
+ 
+ /*
+  * サウンドボードIIの対応はそうとういい加減です。
+@@ -286,6 +290,11 @@
+ 
+ 	if (sound_reg_select < 0x10) {
+ 		/* 0x00..0x0f はリード可 */
++#ifdef CHIMERA_CORE
++		if (sound_reg_select >= 0x0e) {
++			chimera_input_read();	/* the controller port (Chimera) */
++		}
++#endif
+ 
+ 		return sound_reg[ sound_reg_select ];
+ 

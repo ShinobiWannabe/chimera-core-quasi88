@@ -1,0 +1,42 @@
+{
+  "package": "quasi88",
+  "effectiveTerms": "MIT, BSD-3-Clause, the MAME licence and the fmgen terms, together",
+  "commercialUse": "prohibited: the MAME licence of the sound drivers forbids selling the package or using it in a commercial product or activity, and fmgen needs its author's consent for commercial software",
+  "note": "The built core combines this repository's MIT integration with QUASI88 (BSD-3-Clause), the MAME/XMAME sound drivers QUASI88 carries (the old MAME licence) and fmgen (the fmgen terms). The MAME licence asks that a modified build be distributed with its complete source: the source of every part is linked below by exact commit, and this repository holds the changes (patches/ and waterbox/). fmgen's terms allow free modification and distribution if the origin is named, the result stays free software, changes are stated and its text is kept unchanged.",
+  "components": [
+    {
+      "name": "chimera-core-quasi88 (integration)",
+      "license": "MIT",
+      "url": "https://github.com/ShinobiWannabe/chimera-core-quasi88",
+      "commit": "{selfCommit}",
+      "file": "LICENSE",
+      "sourceUrl": "https://github.com/ShinobiWannabe/chimera-core-quasi88/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "QUASI88 (bubio's SDL2 port of Showzoh Fukunaga's PC-8801 emulator)",
+      "license": "BSD-3-Clause",
+      "url": "https://github.com/bubio/QUASI88",
+      "commit": "{submodule:extern/QUASI88}",
+      "file": "extern/QUASI88/LICENSE",
+      "sourceUrl": "https://github.com/bubio/QUASI88/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "MAME/XMAME sound drivers (src/snddrv/xmame)",
+      "license": "MAME License (old, non-commercial)",
+      "url": "https://github.com/bubio/QUASI88",
+      "commit": "{submodule:extern/QUASI88}",
+      "file": "extern/QUASI88/src/snddrv/xmame/license.txt",
+      "sourceUrl": "https://github.com/bubio/QUASI88/archive/{commit}.tar.gz",
+      "note": "The YM2203, YM2608, AY-3-8910 and mixing code QUASI88 takes from XMAME 0.106."
+    },
+    {
+      "name": "fmgen (FM sound generator, src/snddrv/fmgen)",
+      "license": "fmgen terms (free software; commercial use needs the author's consent)",
+      "url": "https://github.com/bubio/QUASI88",
+      "commit": "{submodule:extern/QUASI88}",
+      "file": "extern/QUASI88/src/snddrv/fmgen/readme.txt",
+      "sourceUrl": "https://github.com/bubio/QUASI88/archive/{commit}.tar.gz",
+      "note": "Kept unchanged, as its terms require."
+    }
+  ]
+}
