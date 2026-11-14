@@ -256,3 +256,22 @@ off: Choplifter 477 against 373, Xevious 306 against 291, Master of
 Monsters 313 against 294, Xanadu 1387 against 1359, Bomb Jack 2392 against
 2368, Dig Dug 1257 against 1238. Neither has been checked against a real
 machine.
+
+## 12. Controls as in the NP2kai core (user-decided, 2026-11-14)
+
+The owner asked for the bindings and defaults to be as close to the NP2kai
+core's as possible. Every control the two cores share now has the NP2kai
+core's name, letter, header and default binding, the other controls are in
+its order (the mouse buttons, the joystick, the drives, Reset), and TAStudio
+shows the same columns at first. In particular: STOP is Shift+Pause alone,
+RETURN takes Enter and the keypad's Enter, CTRL leaves Right Ctrl free, the
+underscore and keypad comma ship unbound, letters, digits and signs carry no
+header of their own, and the mouse axes take -180 to 180. Checked by script:
+no shared control differs in name, letter, header or binding, and no PC key
+is bound twice.
+
+What the PC-8801 has and the PC-98 has not keeps its own name: HENKAN takes
+the PC-98's XFER binding (Alt+Period), KETTEI its NFER one (Alt+Comma); INS
+DEL (the older keyboards' one key), PC, ZENKAKU and the keypad's RETURN ship
+unbound; the tape controls are lettered and headed as the NP2kai core's CD
+drive controls. The keys stay in the PC-8801 keyboard's order.

@@ -111,23 +111,23 @@
 	X("Key Pad Minus", KEY, 99, 0) \
 	X("Key Pad Slash", KEY, 100, 0) \
 	X("Key Pad RETURN", KEY, 101, 0) \
+	X("Mouse Left Button", JOY, 4, 0) \
+	X("Mouse Right Button", JOY, 5, 0) \
 	X("P1 Joystick Up", JOY, 0, 0) \
 	X("P1 Joystick Down", JOY, 1, 0) \
 	X("P1 Joystick Left", JOY, 2, 0) \
 	X("P1 Joystick Right", JOY, 3, 0) \
 	X("P1 Joystick Button 1", JOY, 4, 0) \
 	X("P1 Joystick Button 2", JOY, 5, 0) \
-	X("Mouse Left Button", JOY, 4, 0) \
-	X("Mouse Right Button", JOY, 5, 0) \
-	X("Drive 1 Previous Disk", FDD1_PREV, 0, 0) \
-	X("Drive 1 Next Disk", FDD1_NEXT, 0, 0) \
-	X("Drive 1 Swap Disk", FDD1_SWAP, 0, 0) \
-	X("Drive 1 Eject Disk", FDD1_EJECT, 0, 0) \
-	X("Drive 2 Previous Disk", FDD2_PREV, 0, 0) \
-	X("Drive 2 Next Disk", FDD2_NEXT, 0, 0) \
-	X("Drive 2 Swap Disk", FDD2_SWAP, 0, 0) \
-	X("Drive 2 Eject Disk", FDD2_EJECT, 0, 0) \
+	X("Drive 1 Previous Floppy Disk", FDD1_PREV, 0, 0) \
+	X("Drive 1 Next Floppy Disk", FDD1_NEXT, 0, 0) \
+	X("Drive 1 Swap Floppy Disk", FDD1_SWAP, 0, 0) \
+	X("Drive 2 Previous Floppy Disk", FDD2_PREV, 0, 0) \
+	X("Drive 2 Next Floppy Disk", FDD2_NEXT, 0, 0) \
+	X("Drive 2 Swap Floppy Disk", FDD2_SWAP, 0, 0) \
 	X("Reset", RESET, 0, 0) \
+	X("Drive 1 Eject Floppy Disk", FDD1_EJECT, 0, 0) \
+	X("Drive 2 Eject Floppy Disk", FDD2_EJECT, 0, 0) \
 	X("Tape Previous", TAPE_PREV, 0, 0) \
 	X("Tape Next", TAPE_NEXT, 0, 0) \
 	X("Tape Swap", TAPE_SWAP, 0, 0) \

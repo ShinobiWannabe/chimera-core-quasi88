@@ -42,68 +42,68 @@ def key(name, header, mnem, bind, *bits):
 
 SHIFT = (0x08, 6)
 # the function row
-key("Key STOP", "STOP", "o", "Shift+Pause, Pause", (0x09, 0))
+key("Key STOP", "STOP", "o", "Shift+Pause", (0x09, 0))
 key("Key COPY", "COPY", "p", "PrintScreen", (0x0A, 4))
 for i in range(1, 6):
     key("Key f.%d" % i, "f%d" % i, "!\"#$%"[i - 1], "F%d" % i, (0x09, i))
 for i in range(6, 11):
     key("Key f.%d" % i, "f%d" % i, "&'()~"[i - 6], "F%d" % i, (0x0C, i - 6), (0x09, i - 5), SHIFT)
-key("Key ROLL UP", "RUP", "u", "PageUp", (0x0B, 0))
-key("Key ROLL DOWN", "RDN", "d", "PageDown", (0x0B, 1))
+key("Key ROLL UP", "RLUP", "u", "PageUp", (0x0B, 0))
+key("Key ROLL DOWN", "RLDN", "y", "PageDown", (0x0B, 1))
 # the number row
 key("Key ESC", "ESC", "e", "Escape", (0x09, 7))
 for i, d in enumerate("1234567"):
-    key("Key " + d, d, d, "Number" + d, (0x06, i + 1))
-key("Key 8", "8", "8", "Number8", (0x07, 0))
-key("Key 9", "9", "9", "Number9", (0x07, 1))
-key("Key 0", "0", "0", "Number0", (0x06, 0))
-key("Key Minus", "-", "-", "Minus", (0x05, 7))
-key("Key Caret", "^", "^", "Equals", (0x05, 6))
-key("Key Yen", "YEN", "\\", "Backtick", (0x05, 4))
+    key("Key " + d, None, d, "Number" + d, (0x06, i + 1))
+key("Key 8", None, "8", "Number8", (0x07, 0))
+key("Key 9", None, "9", "Number9", (0x07, 1))
+key("Key 0", None, "0", "Number0", (0x06, 0))
+key("Key Minus", None, "-", "Minus", (0x05, 7))
+key("Key Caret", None, "^", "Equals", (0x05, 6))
+key("Key Yen", "Yen", "\\", "Backtick", (0x05, 4))
 key("Key BS", "BS", "b", "Backspace", (0x0C, 5), (0x08, 3))
 key("Key INS DEL", "I/D", "D", "", (0x08, 3))
-key("Key INS", "INS", "n", "Insert", (0x0C, 6), (0x08, 3), SHIFT)
-key("Key DEL", "DEL", "l", "Delete", (0x0C, 7), (0x08, 3))
+key("Key INS", "INS", "i", "Insert", (0x0C, 6), (0x08, 3), SHIFT)
+key("Key DEL", "DEL", "d", "Delete", (0x0C, 7), (0x08, 3))
 key("Key HOME CLR", "HOME", "h", "Home", (0x08, 0))
 key("Key HELP", "HELP", "?", "End", (0x0A, 3))
 # the letter rows
 key("Key TAB", "TAB", "t", "Tab", (0x0A, 0))
 for c in "QWERTYUIOP":
     port, bit = divmod(ord(c) - ord("@"), 8)
-    key("Key " + c, c, c, c, (0x02 + port, bit))
-key("Key At", "@", "@", "LeftBracket", (0x02, 0))
-key("Key Left Bracket", "[", "[", "RightBracket", (0x05, 3))
-key("Key RETURN", "RET", "r", "Enter", (0x0E, 0), (0x01, 7))
-key("Key CTRL", "CTRL", "c", "Ctrl, LeftCtrl, RightCtrl", (0x08, 7))
-key("Key CAPS", "CAPS", "C", "CapsLock")
+    key("Key " + c, None, c, c, (0x02 + port, bit))
+key("Key At", None, "@", "LeftBracket", (0x02, 0))
+key("Key Left Bracket", None, "[", "RightBracket", (0x05, 3))
+key("Key RETURN", "RET", "r", "Enter, KeypadEnter", (0x0E, 0), (0x01, 7))
+key("Key CTRL", "CTRL", "c", "Ctrl, LeftCtrl", (0x08, 7))
+key("Key CAPS", "CAPS", "a", "CapsLock")
 for c in "ASDFGHJKL":
     port, bit = divmod(ord(c) - ord("@"), 8)
-    key("Key " + c, c, c, c, (0x02 + port, bit))
-key("Key Semicolon", ";", ";", "Semicolon", (0x07, 3))
-key("Key Colon", ":", ":", "Apostrophe", (0x07, 2))
-key("Key Right Bracket", "]", "]", "Backslash", (0x05, 5))
-key("Key SHIFT", "SHFT", "s", "Shift, LeftShift", SHIFT)
+    key("Key " + c, None, c, c, (0x02 + port, bit))
+key("Key Semicolon", None, ";", "Semicolon", (0x07, 3))
+key("Key Colon", None, ":", "Apostrophe", (0x07, 2))
+key("Key Right Bracket", None, "]", "Backslash", (0x05, 5))
+key("Key SHIFT", "SHIFT", "s", "Shift, LeftShift", SHIFT)
 for c in "ZXCVBNM":
     port, bit = divmod(ord(c) - ord("@"), 8)
-    key("Key " + c, c, c, c, (0x02 + port, bit))
-key("Key Comma", ",", ",", "Comma", (0x07, 4))
-key("Key Period", ".", ".", "Period", (0x07, 5))
-key("Key Slash", "/", "/", "Slash", (0x07, 6))
-key("Key Underscore", "_", "`", "OEM102", (0x07, 7))
-key("Key Right SHIFT", "RSFT", "S", "RightShift", (0x0E, 3), SHIFT)
+    key("Key " + c, None, c, c, (0x02 + port, bit))
+key("Key Comma", None, ",", "Comma", (0x07, 4))
+key("Key Period", None, "`", "Period", (0x07, 5))
+key("Key Slash", None, "/", "Slash", (0x07, 6))
+key("Key Underscore", None, "_", "", (0x07, 7))
+key("Key Right SHIFT", "RSHIFT", "s", "RightShift", (0x0E, 3), SHIFT)
 # the bottom row
 key("Key KANA", "KANA", "k", "Ctrl+ScrollLock")
 key("Key GRPH", "GRPH", "g", "Alt, LeftAlt", (0x08, 4))
-key("Key KETTEI", "KTEI", "j", "", (0x0D, 1), (0x09, 6))
-key("Key SPACE", "SPC", "_", "Space", (0x09, 6))
-key("Key HENKAN", "HNKN", "v", "", (0x0D, 0), (0x09, 6))
+key("Key KETTEI", "KETTEI", "n", "Alt+Comma", (0x0D, 1), (0x09, 6))
+key("Key SPACE", "SPACE", "w", "Space", (0x09, 6))
+key("Key HENKAN", "HENKAN", "x", "Alt+Period", (0x0D, 0), (0x09, 6))
 key("Key PC", "PC", "P", "", (0x0D, 2))
 key("Key ZENKAKU", "ZEN", "z", "", (0x0D, 3))
 # the cursor keys
-key("Key Up", "Up", "U", "Up", (0x08, 1))
-key("Key Down", "Dn", "D", "Down", (0x0A, 1))
-key("Key Left", "Lt", "L", "Left", (0x0A, 2))
-key("Key Right", "Rt", "R", "Right", (0x08, 2))
+key("Key Up", "Up", "{", "Up", (0x08, 1))
+key("Key Down", "Down", "}", "Down", (0x0A, 1))
+key("Key Left", "Left", "<", "Left", (0x0A, 2))
+key("Key Right", "Right", ">", "Right", (0x08, 2))
 # the number pad
 for i in range(8):
     key("Key Pad %d" % i, "P%d" % i, str(i), "Keypad%d" % i, (0x00, i))
@@ -112,11 +112,11 @@ key("Key Pad 9", "P9", "9", "Keypad9", (0x01, 1))
 key("Key Pad Asterisk", "P*", "*", "KeypadMultiply", (0x01, 2))
 key("Key Pad Plus", "P+", "+", "KeypadAdd", (0x01, 3))
 key("Key Pad Equals", "P=", "=", "", (0x01, 4))
-key("Key Pad Comma", "P,", ",", "KeypadComma", (0x01, 5))
-key("Key Pad Period", "P.", ".", "KeypadDecimal", (0x01, 6))
+key("Key Pad Comma", "P,", ",", "", (0x01, 5))
+key("Key Pad Period", "P.", "`", "KeypadDecimal", (0x01, 6))
 key("Key Pad Minus", "P-", "-", "KeypadSubtract", (0x0A, 5))
 key("Key Pad Slash", "P/", "/", "KeypadDivide", (0x0A, 6))
-key("Key Pad RETURN", "PRET", "r", "KeypadEnter", (0x0E, 1), (0x01, 7))
+key("Key Pad RETURN", "PRET", "r", "", (0x0E, 1), (0x01, 7))
 
 # The locking keys: a press turns the lock on or off, and the machine reads
 # the lock (QUASI88 does the same, keyboard.c quasi88_tgl_key_kana).
@@ -129,45 +129,46 @@ LOCKS = {"Key KANA": (0x08, 5), "Key CAPS": (0x0A, 7)}
 # setting. Both read the port's bits, so the mouse buttons are the stick's
 # buttons. kind: what the driver does with it (q88-driver.c).
 OTHER = [
-    ("P1 Joystick Up", "JU", "U", "J1 POV0U, X1 DpadUp, X1 LStickUp", "JOY", 0),
-    ("P1 Joystick Down", "JD", "D", "J1 POV0D, X1 DpadDown, X1 LStickDown", "JOY", 1),
-    ("P1 Joystick Left", "JL", "L", "J1 POV0L, X1 DpadLeft, X1 LStickLeft", "JOY", 2),
-    ("P1 Joystick Right", "JR", "R", "J1 POV0R, X1 DpadRight, X1 LStickRight", "JOY", 3),
-    ("P1 Joystick Button 1", "J1", "1", "J1 B1, X1 A", "JOY", 4),
-    ("P1 Joystick Button 2", "J2", "2", "J1 B2, X1 B", "JOY", 5),
-    ("Mouse Left Button", "ML", "l", "WMouse L", "JOY", 4),
-    ("Mouse Right Button", "MR", "r", "WMouse R", "JOY", 5),
-    ("Drive 1 Previous Disk", "1Prv", "<", "", "FDD1_PREV", 0),
-    ("Drive 1 Next Disk", "1Nxt", ">", "", "FDD1_NEXT", 0),
-    ("Drive 1 Swap Disk", "1Swp", "w", "", "FDD1_SWAP", 0),
-    ("Drive 1 Eject Disk", "1Ej", "x", "", "FDD1_EJECT", 0),
-    ("Drive 2 Previous Disk", "2Prv", "<", "", "FDD2_PREV", 0),
-    ("Drive 2 Next Disk", "2Nxt", ">", "", "FDD2_NEXT", 0),
-    ("Drive 2 Swap Disk", "2Swp", "w", "", "FDD2_SWAP", 0),
-    ("Drive 2 Eject Disk", "2Ej", "x", "", "FDD2_EJECT", 0),
-    ("Reset", "RST", "R", "", "RESET", 0),
-    ("Tape Previous", "TPrv", "[", "", "TAPE_PREV", 0),
-    ("Tape Next", "TNxt", "]", "", "TAPE_NEXT", 0),
-    ("Tape Swap", "TSwp", "t", "", "TAPE_SWAP", 0),
-    ("Tape Eject", "TEj", "e", "", "TAPE_EJECT", 0),
-    ("Tape Rewind", "TRew", "w", "", "TAPE_REWIND", 0),
+    ("Mouse Left Button", "MLeft", "l", "WMouse L", "JOY", 4),
+    ("Mouse Right Button", "MRight", "m", "WMouse R", "JOY", 5),
+    ("P1 Joystick Up", "J1Up", None, "J1 POV0U, X1 DpadUp, X1 LStickUp", "JOY", 0),
+    ("P1 Joystick Down", "J1Down", None, "J1 POV0D, X1 DpadDown, X1 LStickDown", "JOY", 1),
+    ("P1 Joystick Left", "J1Left", None, "J1 POV0L, X1 DpadLeft, X1 LStickLeft", "JOY", 2),
+    ("P1 Joystick Right", "J1Right", None, "J1 POV0R, X1 DpadRight, X1 LStickRight", "JOY", 3),
+    ("P1 Joystick Button 1", "J1A", None, "J1 B1, X1 A", "JOY", 4),
+    ("P1 Joystick Button 2", "J1B", None, "J1 B2, X1 B", "JOY", 5),
+    ("Drive 1 Previous Floppy Disk", "D1Prev", "q", "", "FDD1_PREV", 0),
+    ("Drive 1 Next Floppy Disk", "D1Next", "j", "", "FDD1_NEXT", 0),
+    ("Drive 1 Swap Floppy Disk", "D1Swap", "v", "", "FDD1_SWAP", 0),
+    ("Drive 2 Previous Floppy Disk", "D2Prev", "q", "", "FDD2_PREV", 0),
+    ("Drive 2 Next Floppy Disk", "D2Next", "j", "", "FDD2_NEXT", 0),
+    ("Drive 2 Swap Floppy Disk", "D2Swap", "v", "", "FDD2_SWAP", 0),
+    ("Reset", "Reset", "f", "", "RESET", 0),
+    ("Drive 1 Eject Floppy Disk", "D1Eject", "z", "", "FDD1_EJECT", 0),
+    ("Drive 2 Eject Floppy Disk", "D2Eject", "z", "", "FDD2_EJECT", 0),
+    # the data recorder, named and lettered as the NP2kai core's CD drive
+    ("Tape Previous", "TPrev", "q", "", "TAPE_PREV", 0),
+    ("Tape Next", "TNext", "j", "", "TAPE_NEXT", 0),
+    ("Tape Swap", "TSwap", "v", "", "TAPE_SWAP", 0),
+    ("Tape Eject", "TEject", "z", "", "TAPE_EJECT", 0),
+    ("Tape Rewind", "TRewind", "b", "", "TAPE_REWIND", 0),
 ]
 
 AXES = [
-    {"name": "Mouse X", "min": -127, "max": 127, "neutral": 0, "header": "MX"},
-    {"name": "Mouse Y", "min": -127, "max": 127, "neutral": 0, "header": "MY"},
+    {"name": "Mouse X", "min": -180, "max": 180, "neutral": 0, "header": "MX"},
+    {"name": "Mouse Y", "min": -180, "max": 180, "neutral": 0, "header": "MY"},
 ]
 
 TASTUDIO = [
-    "Key ESC", "Key TAB", "Key SHIFT", "Key CTRL", "Key Z", "Key X", "Key C",
+    "Key ESC", "Key TAB", "Key SHIFT", "Key Z", "Key X", "Key C", "Key V",
     "Key Up", "Key Down", "Key Left", "Key Right",
     "Key Pad 1", "Key Pad 2", "Key Pad 3", "Key Pad 4", "Key Pad 5", "Key Pad 6",
     "Key Pad 7", "Key Pad 8", "Key Pad 9",
-    "Key SPACE", "Key RETURN", "Key STOP", "Key f.1",
+    "Key SPACE", "Key RETURN", "Key HELP", "Key STOP",
+    "Drive 1 Next Floppy Disk", "Drive 1 Swap Floppy Disk", "Drive 2 Next Floppy Disk", "Drive 2 Swap Floppy Disk",
+    "Reset",
     "P1 Joystick Up", "P1 Joystick Down", "P1 Joystick Left", "P1 Joystick Right",
     "P1 Joystick Button 1", "P1 Joystick Button 2",
-    "Drive 1 Next Disk", "Drive 1 Swap Disk", "Drive 2 Next Disk", "Drive 2 Swap Disk",
-    "Reset",
 ]
 
 # ---------------------------------------------------------------- settings
@@ -303,7 +304,7 @@ SLOTS = [
      "help": "Floppy disk images in the D88 format (.d88, .88d). A D88 file may hold several disks. The "
              "first disk of the first file is in drive 1 when the machine starts, and the second file, or "
              "the first file's second disk, in drive 2. The order here is the order the Previous, Next and "
-             "Swap Disk inputs go through, every disk of each file in turn. What the machine writes to a "
+             "Swap Floppy Disk inputs go through, every disk of each file in turn. What the machine writes to a "
              "disk stays for the session and can be exported as save data."},
     {"id": "tape", "title": "Cassette tapes", "min": 0, "max": -1, "formats": ["t88", "cmt"],
      "help": "Cassette tape images (.t88, or QUASI88's raw .cmt). The first is in the data recorder when the machine starts; the Tape Previous, Next, Swap and Eject inputs change it, in the order listed here, and Tape Rewind winds it back to the start. A game on tape is loaded from BASIC (for example with LOAD or CLOAD, or MON and L). What the machine saves to tape goes into tape-save.cmt, which can be exported as save data."},
@@ -333,16 +334,28 @@ def main():
     buttons = [k["name"] for k in K] + [o[0] for o in OTHER]
     if len(set(buttons)) != len(buttons):
         sys.exit("two controls share a name")
-    mnemonics = {k["name"]: k["mnem"] for k in K}
-    headers = {k["name"]: k["header"] for k in K}
+    # None leaves a control to Chimera's rule, as the NP2kai core does: no
+    # letter is the first letter of the name's last word, no header the letter
+    mnemonics = {k["name"]: k["mnem"] for k in K if k["mnem"] is not None}
+    headers = {k["name"]: k["header"] for k in K if k["header"] is not None}
     for o in OTHER:
-        mnemonics[o[0]] = o[2]
-        headers[o[0]] = o[1]
+        if o[2] is not None:
+            mnemonics[o[0]] = o[2]
+        if o[1] is not None:
+            headers[o[0]] = o[1]
+
+    def shown(b):
+        return headers.get(b) or mnemonics.get(b) or b.split()[-1][0]
+
     # a header may not be another column's of the same player (Chimera's
-    # contract tests refuse it): the console's columns, then player 1's
+    # contract tests refuse it): the console's columns, then player 1's.
+    # Only the headers given are compared: a column headed by its letter is
+    # one of many on a computer keyboard, as in the NP2kai core.
     for group in ([b for b in buttons if not b.startswith("P1 ")], [b for b in buttons if b.startswith("P1 ")]):
         seen = {}
         for b in group:
+            if b not in headers:
+                continue
             if headers[b] in seen:
                 sys.exit("%s and %s share the header %s" % (seen[headers[b]], b, headers[b]))
             seen[headers[b]] = b

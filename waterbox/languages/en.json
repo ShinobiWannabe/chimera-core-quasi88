@@ -86,7 +86,7 @@
     "setting.volume_s_s_g": "SSG Volume",
     "setting.volume_s_s_g.about": "The SSG part of the sound chip, which most games use for sound effects, in per cent. The default, 20, is QUASI88's. Only the sound changes, never what the machine does, so a movie plays back the same with any value.",
     "slot.floppy": "Floppy disks",
-    "slot.floppy.help": "Floppy disk images in the D88 format (.d88, .88d). A D88 file may hold several disks. The first disk of the first file is in drive 1 when the machine starts, and the second file, or the first file's second disk, in drive 2. The order here is the order the Previous, Next and Swap Disk inputs go through, every disk of each file in turn. What the machine writes to a disk stays for the session and can be exported as save data.",
+    "slot.floppy.help": "Floppy disk images in the D88 format (.d88, .88d). A D88 file may hold several disks. The first disk of the first file is in drive 1 when the machine starts, and the second file, or the first file's second disk, in drive 2. The order here is the order the Previous, Next and Swap Floppy Disk inputs go through, every disk of each file in turn. What the machine writes to a disk stays for the session and can be exported as save data.",
     "slot.tape": "Cassette tapes",
     "slot.tape.help": "Cassette tape images (.t88, or QUASI88's raw .cmt). The first is in the data recorder when the machine starts; the Tape Previous, Next, Swap and Eject inputs change it, in the order listed here, and Tape Rewind winds it back to the start. A game on tape is loaded from BASIC (for example with LOAD or CLOAD, or MON and L). What the machine saves to tape goes into tape-save.cmt, which can be exported as save data."
   }
