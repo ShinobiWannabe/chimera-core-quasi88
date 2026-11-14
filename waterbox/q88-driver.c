@@ -51,6 +51,9 @@ static uint64_t g_states;
 /* the Start Time setting: seconds since 1970 in UTC */
 static long long g_startTime;
 static int g_started;
+/* the floppy drives the controller worked on this frame, and last frame's,
+ * which the lights show (see the drives section) */
+static uint8_t g_accessed[2], g_lit[2];
 
 /* the save-data window (see the save data section) */
 #define SAVEDATA_WINDOW (256 * 1024)
@@ -280,13 +283,27 @@ static void drive_step(int drv, int delta)
 	g_selected[drv] = (g_selected[drv] + delta + g_mediaCount) % g_mediaCount;
 }
 
-/* quasi88_disk_insert takes the old disk out first, so a disk that fails to
- * go in leaves the drive empty */
+/* Swap puts the selected disk in. When that disk is in the other drive, the
+ * two drives trade disks, as the NP2kai core does (owner, 2026-11-14): one
+ * disk cannot be in two drives. An empty drive gives the other nothing back:
+ * that drive is left empty, and its selector stays where it was.
+ * quasi88_disk_insert takes the old disk out first, so a disk that fails to
+ * go in leaves the drive empty. */
+static void drive_insert(int drv, int m)
+{
+	g_inserted[drv] = m >= 0 && quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) ? m : -1;
+	if (m < 0) quasi88_disk_eject(drv);
+}
+
 static void drive_swap(int drv)
 {
-	int m = g_selected[drv];
-	if (m < 0 || m >= g_mediaCount || m == g_inserted[drv]) return;
-	g_inserted[drv] = quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) ? m : -1;
+	int other = 1 - drv, m = g_selected[drv], cur = g_inserted[drv];
+	if (m < 0 || m >= g_mediaCount || m == cur) return;
+	drive_insert(drv, m);
+	if (g_inserted[drv] == m && g_inserted[other] == m) {
+		drive_insert(other, cur);
+		if (cur >= 0) g_selected[other] = cur;
+	}
 }
 
 static void drive_eject(int drv)
@@ -554,6 +571,8 @@ ECL_EXPORT void FrameAdvance(uint64_t packed)
 		if (r != QUASI88_LOOP_BUSY) break;
 	}
 	g_audioPairs = chimera_sound_take(g_audio, Q88DRV_AUDIO_MAX_PAIRS);
+	memcpy(g_lit, g_accessed, sizeof g_lit);
+	memset(g_accessed, 0, sizeof g_accessed);
 	if (g_render) copy_frame();
 	g_states += (uint64_t)state_of_vsync;
 	g_frames++;
@@ -618,13 +637,21 @@ ECL_EXPORT int32_t GetMemoryDomainHidden(int32_t i) { return GetMemoryDomainSize
 /* ------------------------------------------------------------ drives
  *
  * The two floppy drives, when the project has a disk. A drive's light is on
- * at the end of a frame in which the disk controller was working on it, as
- * QUASI88's status bar shows it (fdc.c get_drive_ready). Every disk of the
- * project can go in either drive: Previous and Next move the selector and
- * Swap puts the selected disk in (apply_input). */
-/* The floppy drives come first, when the project has a disk, then the data
+ * for a frame in which the disk controller worked on it at any moment (the
+ * hook patches/0002 adds to fdc.c fdc_ctrl marks it; the frame's end latches
+ * it), so a short read is never missed (owner, 2026-11-14). Every disk of
+ * the project can go in either drive: Previous and Next move the selector
+ * and Swap puts the selected disk in (apply_input).
+ * The floppy drives come first, when the project has a disk, then the data
  * recorder, when it has a tape: its light is the cassette motor's relay
- * (port 30h bit 3) with a tape in. */
+ * (port 30h bit 3) with a tape in. All of it is guest memory, so a rewind
+ * takes it back. */
+
+void chimera_drive_access(int drv)
+{
+	if (drv >= 0 && drv < 2) g_accessed[drv] = 1;
+}
+
 static int floppy_drives(void) { return g_mediaCount > 0 ? 2 : 0; }
 static int is_tape(int32_t i) { return g_tapeCount > 0 && i == floppy_drives(); }
 
@@ -637,7 +664,7 @@ ECL_EXPORT const char *GetDriveName(int32_t i)
 ECL_EXPORT int32_t GetDriveLight(int32_t i)
 {
 	if (is_tape(i)) return g_tapeInserted >= 0 && (sys_ctrl & 0x08) != 0;
-	return i >= 0 && i < floppy_drives() && !get_drive_ready(i);
+	return i >= 0 && i < floppy_drives() && g_lit[i];
 }
 ECL_EXPORT int32_t GetDriveMediaCount(int32_t i)
 {

@@ -1,0 +1,57 @@
+--- a/src/pc88/fdc.c
++++ b/src/pc88/fdc.c
+@@ -26,6 +26,10 @@
+ #include "event.h"
+ #include "snddrv.h"
+ 
++#ifdef CHIMERA_CORE
++void chimera_drive_access(int drv);
++#endif
++
+ 
+ 
+ static int fdc_break_flag = FALSE;
+@@ -1325,6 +1329,10 @@
+ 	int exist_iam = FALSE;				/* IAMが1度でも見つかったら真 */
+ 	int n;
+ 
++#ifdef CHIMERA_CORE
++	chimera_drive_access(fdc.us);	/* the disk in this drive is read or written (Chimera) */
++#endif
++
+ 	/* 最初に、ユニットなどのチェックを行う */
+ 
+ 	if (fdc_check_unit() == 0) {
+@@ -1518,6 +1526,10 @@
+ 	int drv = (fdc.us);
+ 	int read_size, size, ptr, error;
+ 
++#ifdef CHIMERA_CORE
++	chimera_drive_access(fdc.us);	/* the disk in this drive is read or written (Chimera) */
++#endif
++
+ 
+ 	print_fdc_status(((fdc.command == READ_DIAGNOSTIC) ? BP_FDC_DIAG : BP_FDC_READ),
+ 					 drv, drive[drv].track, drive[drv].sec);
+@@ -1682,6 +1694,10 @@
+ 	int  gap4_size  = sec_buf.size;
+ 	int  gap4_wrote = FALSE;
+ 
++#ifdef CHIMERA_CORE
++	chimera_drive_access(fdc.us);	/* the disk in this drive is read or written (Chimera) */
++#endif
++
+ 	print_fdc_status(BP_FDC_WRITE, drv, drive[drv].track, drive[drv].sec);
+ 
+ 
+@@ -1901,6 +1917,10 @@
+ 	char id[SZ_DISK_ID], data[128];
+ 	int  drv = fdc.us;
+ 
++#ifdef CHIMERA_CORE
++	chimera_drive_access(fdc.us);	/* the disk in this drive is read or written (Chimera) */
++#endif
++
+ 
+ 	/* 処理の最中にディスクが交換されたりした時は、処理せず異常終了 */
+ 

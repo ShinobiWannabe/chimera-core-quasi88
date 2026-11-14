@@ -103,7 +103,7 @@ if [ -n "$path" ]; then
 	elif cmp -s "$work/n.log" "$work/w.log" && cmp -s "$work/n.mem" "$work/w.mem"; then ok "input: SPACE starts Xevious and the joystick moves; native = sandbox"
 	else bad "input: native and sandbox differ: $(cmp "$work/n.log" "$work/w.log" 2>&1 | head -1)"; fi
 	# lag frames: frames on which the machine read no control
-	if awk '$8 == 0' "$work/n.log" | grep -q . && awk '$8 == 1' "$work/n.log" | grep -q .; then
+	if awk '$7 == 0' "$work/n.log" | grep -q . && awk '$7 == 1' "$work/n.log" | grep -q .; then
 		ok "lag frames: some frames read the controls and some did not"
 	else
 		bad "lag frames: every frame says the same"

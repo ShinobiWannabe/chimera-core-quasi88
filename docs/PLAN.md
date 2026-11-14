@@ -17,9 +17,9 @@ A core for the NEC PC-8801, built like the NP2kai core
   distributed with its complete source), and fmgen, under its own terms
   (free software, origin named, changes stated, its text unchanged;
   commercial software needs the author's consent). The NP2kai core already
-  ships fmgen under the same terms. Whether the MAME licence's terms are met
-  by publishing the package with its source linked by commit is the owner's
-  to decide before the core is published.
+  ships fmgen under the same terms. The owner accepted the MAME licence's
+  non-commercial terms for this core (user-decided, 2026-11-14); the
+  package links the source of every part by commit.
 - **One thread on one clock**: QUASI88 is single threaded. Its main loop
   (quasi88.c quasi88_loop) runs the two Z80s until the next VSYNC and returns;
   the only waits are in the system layer, which the core replaces.
@@ -30,12 +30,14 @@ A core for the NEC PC-8801, built like the NP2kai core
 
 ## 2. The shape (2026-11-14)
 
-- `extern/QUASI88` is the submodule; `patches/` holds the changes. There is
-  one: `0001-input-poll-hooks.patch`, two calls to `chimera_input_read()`
+- `extern/QUASI88` is the submodule; `patches/` holds the changes. There are
+  two. `0001-input-poll-hooks.patch` adds two calls to `chimera_input_read()`
   under `CHIMERA_CORE`, where the machine reads its keyboard ports
   (pc88main.c main_io_in, ports 00h-0Fh) and its controller port (soundbd.c
   sound_in_data, registers 0Eh and 0Fh). They mark the frame as one that read
   its controls (lag frames) and call the engine's input-poll callback.
+  `0002-drive-access-hook.patch` marks a floppy drive as used where the disk
+  controller reads or writes its disk, for the drive lights (section 9c).
 - `waterbox/port` is a system layer of QUASI88's own kind, modelled on
   upstream's `src/sysdepend/mini` and `src/osdepend/dummy`: config.h,
   device.h, filename.h, graph.c (the screen), system.c (events, the wait,
@@ -189,6 +191,28 @@ mounted. Not tried: no drum ROM or WAV files were at hand.
   in capitals first.
 - tools/gen-config.py refuses two columns of one player with the same
   header, as Chimera's contract tests do.
+
+## 9c. The owner's answers (user-decided, 2026-11-14)
+
+- **One disk, one drive.** Swap puts the selected disk in; when that disk
+  is in the other drive, the two drives trade disks, as the NP2kai core
+  does. An empty drive gives nothing back: the other drive is left empty.
+  QUASI88 itself would have put one disk in both drives. Checked with
+  run-wbx's Q88_MEDIA: two files, drive 2 swapped to drive 1's disk, the
+  drives hold each other's.
+- **Drive lights for any access.** `patches/0002-drive-access-hook.patch`
+  calls `chimera_drive_access(fdc.us)` where the disk controller reads or
+  writes a disk (fdc.c fdc_search_id, fdc_read_data, fdc_write_data,
+  fdc_write_id); a drive's light is on for a frame in which that happened.
+  The first try hooked fdc_ctrl whenever a command was in progress, and lit
+  the drives on every frame: the disk unit's ROM keeps issuing status
+  commands. Measured now: Choplifter's drive is lit on 112 of its first
+  2400 frames.
+- **The licence.** The MAME licence's non-commercial terms are acceptable
+  for this core.
+- A mistake the light measurement showed: the gate's lag-frame test read the
+  lights' field instead of the controls' one. It now reads the right field
+  and passes.
 
 ## 10. Results (2026-11-14)
 
