@@ -215,9 +215,11 @@ SETTINGS = [
               "all the time, the slowest and the closest to a real machine. A few games need 1 or 2 to "
               "load." + SAME},
     {"name": "fdcWait", "type": "bool", "default": True, "sync": True, "display": "Disk Access Time",
-     "about": "Makes the floppy disk controller take as long as a real one to find and read a sector "
-              "(QUASI88's -fdc_wait). On by default, so games load in the time they take on a real "
-              "machine; off, they load almost at once." + SAME},
+     "about": "Makes the floppy disk controller take as long as a real one to move the head and wait for the "
+              "sector to come round (QUASI88's -fdc_wait). On by default, so games load in about the time "
+              "they take on a real PC-8801. Off, the controller answers almost at once and games load "
+              "sooner (up to about 2 seconds in the games tried), but that is not as accurate to real "
+              "hardware." + SAME},
     {"name": "memoryWait", "type": "bool", "default": False, "sync": True, "display": "Memory Wait",
      "about": "Slows the CPU down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). "
               "Off by default, as in QUASI88." + SAME},

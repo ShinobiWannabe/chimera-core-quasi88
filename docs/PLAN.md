@@ -245,3 +245,14 @@ needs Chimera's window built with Qt) and Chimera's contract tests
 (`test-packages`, also built with the window), a movie recorded in the
 window and played on Windows, the CI workflow, and translations of the texts
 (English only; Chimera shows English where a table is missing).
+
+## 11. Disk Access Time (user-decided, 2026-11-14)
+
+Disk Access Time (QUASI88's -fdc_wait) stays on by default, for timing
+closer to a real PC-8801; QUASI88's own default is off. The setting's
+description says that turning it off is not as accurate to real hardware.
+Measured, the frame of the last disk read in the first 2400, on against
+off: Choplifter 477 against 373, Xevious 306 against 291, Master of
+Monsters 313 against 294, Xanadu 1387 against 1359, Bomb Jack 2392 against
+2368, Dig Dug 1257 against 1238. Neither has been checked against a real
+machine.
