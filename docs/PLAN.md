@@ -167,7 +167,16 @@ The sandboxed core runs at about 1500 frames a second on the owner's PC.
 A savestate taken in play and loaded gives the straight run again (7.9 MB a
 state); one extra press after the load shows (the control).
 
-Not done yet: the frontend gate (`waterbox/tests/run-frontend.sh`) and
-Chimera's contract tests against the package, a movie recorded in Chimera and
-played on Windows, the CI workflow, and translations of the texts (English
-only; Chimera shows English where a table is missing).
+Through Chimera's engine (chimera-run built from Chimera a0b446f8 on Linux,
+without the window): a project made with `--new-project` from Xevious and an
+1800-frame movie (SPACE, then the joystick) plays to the same main RAM as the
+native reference given the same input, and so does the same movie with
+`--rerecord` (a state saved and loaded around every frame). The firmware
+check and the load error ("The firmware file pc88.rom is missing.") come
+through in the package's texts.
+
+Not done yet: the frontend gate (`waterbox/tests/run-frontend.sh`, which
+needs Chimera's window built with Qt) and Chimera's contract tests
+(`test-packages`, also built with the window), a movie recorded in the
+window and played on Windows, the CI workflow, and translations of the texts
+(English only; Chimera shows English where a table is missing).
