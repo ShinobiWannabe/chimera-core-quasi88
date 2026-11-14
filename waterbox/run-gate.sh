@@ -133,5 +133,31 @@ else
 	skp "time and turbo: Master_of_Monsters.D88 not in Q88_GAMES"
 fi
 
+# ---- tapes: a program saved to tape from BASIC, then loaded and run ----
+# Needs only the firmware: the machine starts in BASIC with no disk.
+d=$work/tape
+mkdir -p "$d" "$work/saved"
+rm -f "$d"/* "$work/saved"/*
+cp "$pc88" "$d/pc88.rom"; cp "$kanji1" "$d/kanji1.rom"
+printf '{}' > "$d/slots"; printf '{"bootFrom":"ROM"}' > "$d/settings"
+P=$(python3 "$root/tools/type-keys.py" 400 '|10 PRINT 12345|SAVE ~CAS:A~|' 2>/dev/null)
+Q88_SAVEDATA=$work/saved Q88_PRESS="$P" $native "$d" 1500 > /dev/null 2>&1
+if [ -s "$work/saved/tape-save.cmt" ]; then
+	ok "tape save: SAVE \"CAS:A\" from BASIC leaves tape-save.cmt as save data ($(wc -c < "$work/saved/tape-save.cmt") bytes)"
+	cp "$work/saved/tape-save.cmt" "$d/test.cmt"
+	printf '{"tape": ["test.cmt"]}' > "$d/slots"
+	P=$(python3 "$root/tools/type-keys.py" 400 '|LOAD ~CAS:A~|RUN|' 2>/dev/null)
+	Q88_PRESS="$P" $native "$d" 1500 /dev/null "$work/n.mem" > "$work/n.log" 2>/dev/null
+	Q88_PRESS="$P" $wbx "$d" 1500 /dev/null "$work/w.mem" 2>/dev/null | grep '^[0-9]' > "$work/w.log"
+	# the control: the same typing with no tape in the recorder
+	printf '{}' > "$d/slots"
+	Q88_PRESS="$P" $native "$d" 1500 /dev/null "$work/c.mem" > /dev/null 2>&1
+	if cmp -s "$work/n.mem" "$work/c.mem"; then bad "tape load: RAM is the same with no tape in"
+	elif cmp -s "$work/n.log" "$work/w.log" && cmp -s "$work/n.mem" "$work/w.mem"; then ok "tape load: LOAD \"CAS:A\" reads the tape back; native = sandbox"
+	else bad "tape load: native and sandbox differ"; fi
+else
+	bad "tape save: no tape-save.cmt after SAVE \"CAS:A\""
+fi
+
 echo "gate: $pass passed, $fail failed, $skip skipped"
 [ $fail -eq 0 ]

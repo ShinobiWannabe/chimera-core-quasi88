@@ -149,6 +149,47 @@ setting's description warns about mixing.
 The kanji ROMs are separate either way. The font comes from KANJI1.ROM, as
 QUASI88 does it when no FONT.ROM is given, so no font file is declared.
 
+## 9a. Every format QUASI88 reads (2026-11-14)
+
+What QUASI88 opens, from every osd_fopen call in the sources it compiles:
+
+| QUASI88 opens | In the core |
+|---|---|
+| Floppy disks, D88 (any name; .d88 and .88d by custom) | the `floppy` slot |
+| Cassette tapes to load, T88 or raw CMT (pc88main.c sio_open_tapeload, which tells them apart by T88's header) | the `tape` slot (added 2026-11-14) |
+| A cassette tape to save to (sio_open_tapesave, appended) | tape-save.cmt, made in memory and exported as save data (added 2026-11-14) |
+| The BASIC, disk unit, kanji and dictionary ROMs, separate or combined (-compatrom) | firmware |
+| The YM2608 drum ROM, ym2608_adpcm_rom.bin (MAME's generator), or the six 2608_*.WAV recordings (fmgen) | firmware, when the new Rhythm Samples setting is on (added 2026-11-14) |
+| Its configuration and key binding files, state files (.sta), snapshots, wave recordings, key record and playback files, printer and serial port files | refused: the project, Chimera's savestates and movies stand for them, and nothing is written to the host |
+
+Tapes: the first tape is in the data recorder at power-on; Tape Previous,
+Next, Swap and Eject change it as the drive controls change disks, and Tape
+Rewind winds it back (control.c quasi88_load_tape_rewind). The recorder is
+listed as a drive, its light the cassette motor relay. The gate's tape test
+needs only the firmware: it types a one-line program in ROM BASIC, saves it
+with SAVE "CAS:A", gives the saved tape back as a project tape, loads it with
+LOAD "CAS:A" and runs it, native against sandbox, with the same typing and
+no tape as the control. Measured: a 37-byte tape, loaded and run, identical
+in both builds.
+
+Rhythm Samples is off by default, so no firmware is asked for until a
+project wants the drums; with it off the drum files are not read even if
+mounted. Not tried: no drum ROM or WAV files were at hand.
+
+## 9b. Review fixes (2026-11-14)
+
+- A disk that failed to go into a drive (Swap) was still shown as inserted,
+  though QUASI88 had already taken the old disk out: the drive is now shown
+  empty.
+- A disk or tape QUASI88 could not open at power-on was shown as inserted:
+  the media state is now read back from QUASI88 after it starts.
+- The file layer held at most 64 files and the save data list 64 entries;
+  both now hold 512, more than the slots file can name.
+- A hidden ROM is hidden in either case, since QUASI88 asks for some names
+  in capitals first.
+- tools/gen-config.py refuses two columns of one player with the same
+  header, as Chimera's contract tests do.
+
 ## 10. Results (2026-11-14)
 
 Native against sandbox, every frame's picture, sound, clock and drive lights

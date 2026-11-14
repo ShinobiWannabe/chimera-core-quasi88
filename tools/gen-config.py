@@ -146,6 +146,11 @@ OTHER = [
     ("Drive 2 Swap Disk", "2Swp", "w", "", "FDD2_SWAP", 0),
     ("Drive 2 Eject Disk", "2Ej", "x", "", "FDD2_EJECT", 0),
     ("Reset", "RST", "R", "", "RESET", 0),
+    ("Tape Previous", "TPrv", "[", "", "TAPE_PREV", 0),
+    ("Tape Next", "TNxt", "]", "", "TAPE_NEXT", 0),
+    ("Tape Swap", "TSwp", "t", "", "TAPE_SWAP", 0),
+    ("Tape Eject", "TEj", "e", "", "TAPE_EJECT", 0),
+    ("Tape Rewind", "TRew", "w", "", "TAPE_REWIND", 0),
 ]
 
 AXES = [
@@ -174,6 +179,8 @@ SAME = " It is part of the machine, so a movie needs the same value."
 SOUND_ONLY = " Only the sound changes, never what the machine does, so a movie plays back the same with any value."
 
 SEPARATE = {"setting": "romFiles", "is": "Separate files"}
+SB2 = {"setting": "soundBoard", "is": "Sound Board II"}
+RHYTHM = {"setting": "rhythmSamples", "is": True}
 
 SETTINGS = [
     {"name": "romFiles", "type": "enum", "default": "PC88.ROM", "options": ["PC88.ROM", "Separate files"], "sync": True,
@@ -246,6 +253,8 @@ SETTINGS = [
               "written here: the clock holds a local time and has no time zone. The default is "
               "1988-01-01 00:00:00. The clock then runs with the emulated time, not with the time on "
               "your computer." + SAME},
+    {"name": "rhythmSamples", "type": "bool", "default": False, "sync": True, "display": "Rhythm Samples",
+     "about": "Whether the drums of the YM2608 (Sound Board II) play. They are recordings that no ROM of the PC-8801 holds: with the MAME Sound Generator they come from the YM2608's drum ROM as MAME dumps it (ym2608_adpcm_rom.bin, 8 KiB), with fmgen from the six 2608_*.WAV files PC-88 and PC-98 emulators share. Off by default, as the drums are then silent, which needs no file." + SAME},
     {"name": "volumeFM", "type": "int", "default": 100, "min": 0, "max": 100, "display": "FM Volume",
      "about": "The FM music of the sound chip, in per cent. The default, 100, is QUASI88's." + SOUND_ONLY},
     {"name": "volumeSSG", "type": "int", "default": 20, "min": 0, "max": 100, "display": "SSG Volume",
@@ -278,6 +287,13 @@ FIRMWARE = [
     ("kanji1.rom", 131072, "Level 1 kanji ROM", "The level 1 kanji ROM (128 KiB, KANJI1.ROM or N88KNJ1.ROM). The machine's text font is taken from it too.", ["kanji1", "knj1"], None),
     ("kanji2.rom", 131072, "Level 2 kanji ROM", "The level 2 kanji ROM (128 KiB, KANJI2.ROM or N88KNJ2.ROM).", ["kanji2", "knj2"], {"setting": "kanjiLevel2", "is": True}),
     ("n88jisho.rom", 524288, "Dictionary ROM", "The dictionary ROM of the later models (512 KiB, N88JISHO.ROM or JISYO.ROM).", ["jisho", "jisyo"], {"setting": "dictionaryRom", "is": True}),
+    ("ym2608_adpcm_rom.bin", 8192, "YM2608 drum ROM", "The drum ROM inside the YM2608 sound chip, as MAME dumps it (8 KiB, in MAME's ym2608.zip). Used for the drums of Sound Board II when the Sound Generator is MAME.", ["ym2608"], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "MAME"}]}),
+    ("2608_bd.wav", 0, "YM2608 drum sample (bass drum)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_BD.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_bd."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
+    ("2608_sd.wav", 0, "YM2608 drum sample (snare drum)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_SD.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_sd."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
+    ("2608_top.wav", 0, "YM2608 drum sample (top cymbal)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_TOP.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_top."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
+    ("2608_hh.wav", 0, "YM2608 drum sample (hi-hat)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_HH.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_hh."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
+    ("2608_tom.wav", 0, "YM2608 drum sample (tom-tom)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_TOM.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_tom."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
+    ("2608_rim.wav", 0, "YM2608 drum sample (rim shot)", "One of the six drum recordings of the YM2608 sound chip, as the WAV files PC-88 and PC-98 emulators share (2608_RIM.WAV). Used for the drums of Sound Board II when the Sound Generator is fmgen.", ["2608_rim."], {"all": [SB2, RHYTHM, {"setting": "soundGenerator", "is": "fmgen"}]}),
 ]
 
 SLOTS = [
@@ -287,6 +303,8 @@ SLOTS = [
              "the first file's second disk, in drive 2. The order here is the order the Previous, Next and "
              "Swap Disk inputs go through, every disk of each file in turn. What the machine writes to a "
              "disk stays for the session and can be exported as save data."},
+    {"id": "tape", "title": "Cassette tapes", "min": 0, "max": -1, "formats": ["t88", "cmt"],
+     "help": "Cassette tape images (.t88, or QUASI88's raw .cmt). The first is in the data recorder when the machine starts; the Tape Previous, Next, Swap and Eject inputs change it, in the order listed here, and Tape Rewind winds it back to the start. A game on tape is loaded from BASIC (for example with LOAD or CLOAD, or MON and L). What the machine saves to tape goes into tape-save.cmt, which can be exported as save data."},
 ]
 
 CODE_TEXTS = {
@@ -318,6 +336,14 @@ def main():
     for o in OTHER:
         mnemonics[o[0]] = o[2]
         headers[o[0]] = o[1]
+    # a header may not be another column's of the same player (Chimera's
+    # contract tests refuse it): the console's columns, then player 1's
+    for group in ([b for b in buttons if not b.startswith("P1 ")], [b for b in buttons if b.startswith("P1 ")]):
+        seen = {}
+        for b in group:
+            if headers[b] in seen:
+                sys.exit("%s and %s share the header %s" % (seen[headers[b]], b, headers[b]))
+            seen[headers[b]] = b
 
     settings = []
     for s in SETTINGS:
@@ -369,7 +395,7 @@ def main():
             "axes": AXES,
             "tastudioColumns": TASTUDIO,
         },
-        "extensions": ["d88", "88d"],
+        "extensions": ["d88", "88d", "t88", "cmt"],
         "settings": settings,
         "firmware": firmware,
     }

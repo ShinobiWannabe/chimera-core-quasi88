@@ -32,6 +32,8 @@
 #include "drive.h"
 #include "event.h"
 #include "fdc.h"
+#include "fname.h"
+#include "screen.h"
 
 #include "port/chimera-port.h"
 #include "q88-driver.h"
@@ -122,7 +124,7 @@ static void arg_long(const char *opt, long v)
 	arg(n);
 }
 
-static int g_kanji2, g_jisho, g_compatRom;
+static int g_kanji2, g_jisho, g_compatRom, g_rhythm;
 
 static void build_command_line(void)
 {
@@ -178,6 +180,7 @@ static void build_command_line(void)
 	arg_long("-extram", clamp_long(wbx_setting_long("extraRam", 0), 0, 16));
 	g_kanji2 = wbx_setting_bool("kanjiLevel2", 1) != 0;
 	g_jisho = wbx_setting_bool("dictionaryRom", 0) != 0;
+	g_rhythm = wbx_setting_bool("rhythmSamples", 0) != 0;
 	arg(g_jisho ? "-jisho" : "-nojisho");
 	arg_long("-fmvol", clamp_long(wbx_setting_long("volumeFM", 100), 0, 100));
 	arg_long("-psgvol", clamp_long(wbx_setting_long("volumeSSG", 20), 0, 100));
@@ -277,12 +280,13 @@ static void drive_step(int drv, int delta)
 	g_selected[drv] = (g_selected[drv] + delta + g_mediaCount) % g_mediaCount;
 }
 
+/* quasi88_disk_insert takes the old disk out first, so a disk that fails to
+ * go in leaves the drive empty */
 static void drive_swap(int drv)
 {
 	int m = g_selected[drv];
 	if (m < 0 || m >= g_mediaCount || m == g_inserted[drv]) return;
-	if (quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE))
-		g_inserted[drv] = m;
+	g_inserted[drv] = quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) ? m : -1;
 }
 
 static void drive_eject(int drv)
@@ -290,6 +294,56 @@ static void drive_eject(int drv)
 	if (g_inserted[drv] < 0) return;
 	quasi88_disk_eject(drv);
 	g_inserted[drv] = -1;
+}
+
+/* ------------------------------------------------------------ tapes
+ *
+ * The project's cassette tapes (T88 or CMT) arrive in the "tape" slot. The
+ * first is in the data recorder at power-on; Previous and Next move a
+ * selector, Swap puts the selected tape in (at its start), Eject takes it
+ * out and Rewind winds it back. What the machine saves to tape goes into
+ * TAPE_SAVE, made in memory (port/file-op.c), or appended to a tape of that
+ * name the project gives. */
+#define MAX_TAPES 64
+#define TAPE_SAVE "tape-save.cmt"
+static char g_tapes[MAX_TAPES][256];
+static int g_tapeCount, g_tapeSelected, g_tapeInserted = -1;
+
+static void list_tapes(void)
+{
+	int n = wbx_slot_count("tape"), i;
+	g_tapeCount = 0;
+	for (i = 0; i < n && g_tapeCount < MAX_TAPES; i++)
+		if (wbx_slot_name("tape", i, g_tapes[g_tapeCount], sizeof g_tapes[0]) && g_tapes[g_tapeCount][0])
+			g_tapeCount++;
+	g_tapeSelected = 0;
+	g_tapeInserted = g_tapeCount > 0 ? 0 : -1;
+}
+
+static void tape_step(int delta)
+{
+	if (g_tapeCount < 1) return;
+	g_tapeSelected = (g_tapeSelected + delta + g_tapeCount) % g_tapeCount;
+}
+
+static void tape_swap(void)
+{
+	if (g_tapeSelected < 0 || g_tapeSelected >= g_tapeCount || g_tapeSelected == g_tapeInserted) return;
+	g_tapeInserted = quasi88_load_tape_insert(g_tapes[g_tapeSelected]) ? g_tapeSelected : -1;
+}
+
+static void tape_eject(void)
+{
+	if (g_tapeInserted < 0) return;
+	quasi88_load_tape_eject();
+	g_tapeInserted = -1;
+}
+
+/* a tape that cannot be wound back is taken out (control.c) */
+static void tape_rewind(void)
+{
+	if (g_tapeInserted < 0) return;
+	if (!quasi88_load_tape_rewind()) g_tapeInserted = -1;
 }
 
 /* ------------------------------------------------------------ the ABI */
@@ -335,6 +389,11 @@ ECL_EXPORT int Init(void)
 	}
 	if (!g_kanji2) chimera_file_hide("kanji2.rom");
 	if (!g_jisho) chimera_file_hide("n88jisho.rom");
+	if (!g_rhythm) {
+		static const char *const rhythm[] = { "ym2608_adpcm_rom.bin", "2608_bd.wav", "2608_sd.wav",
+			"2608_top.wav", "2608_hh.wav", "2608_tom.wav", "2608_rim.wav" };
+		for (i = 0; i < NELEMENTS(rhythm); i++) chimera_file_hide(rhythm[i]);
+	}
 
 	if (!config_init(g_argc, g_argv, NULL, NULL, NULL)) {
 		snprintf(g_loadError, sizeof g_loadError, "error.start_failed");
@@ -353,7 +412,21 @@ ECL_EXPORT int Init(void)
 			config_image.n[i] = g_media[g_inserted[i]].image;
 		}
 	}
+	list_tapes();
+	free(config_image.t[CLOAD]);
+	free(config_image.t[CSAVE]);
+	config_image.t[CLOAD] = NULL;
+	config_image.t[CSAVE] = (char *)malloc(sizeof TAPE_SAVE);
+	if (config_image.t[CSAVE]) strcpy(config_image.t[CSAVE], TAPE_SAVE);
+	if (g_tapeInserted >= 0) {
+		config_image.t[CLOAD] = (char *)malloc(strlen(g_tapes[g_tapeInserted]) + 1);
+		if (config_image.t[CLOAD]) strcpy(config_image.t[CLOAD], g_tapes[g_tapeInserted]);
+	}
 	quasi88_start();
+	/* a disk or tape QUASI88 could not open is not in its drive */
+	for (i = 0; i < 2; i++)
+		if (g_inserted[i] >= 0 && !disk_image_exist(i)) g_inserted[i] = -1;
+	if (g_tapeInserted >= 0 && !file_tape[CLOAD][0]) g_tapeInserted = -1;
 	g_started = 1;
 	return 1;
 }
@@ -367,7 +440,8 @@ ECL_EXPORT int Init(void)
  * CAPS, change on a press. The levels, the last frame's levels and the
  * locks are machine state (ordinary globals), so savestates and movies
  * carry them. */
-enum { KEY, LOCK, JOY, FDD1_PREV, FDD1_NEXT, FDD1_SWAP, FDD1_EJECT, FDD2_PREV, FDD2_NEXT, FDD2_SWAP, FDD2_EJECT, RESET };
+enum { KEY, LOCK, JOY, FDD1_PREV, FDD1_NEXT, FDD1_SWAP, FDD1_EJECT, FDD2_PREV, FDD2_NEXT, FDD2_SWAP, FDD2_EJECT, RESET,
+	TAPE_PREV, TAPE_NEXT, TAPE_SWAP, TAPE_EJECT, TAPE_REWIND };
 static const uint8_t k_keyMasks[][15] = Q88_KEY_MASKS;
 
 static const struct { int kind, a, b; } k_buttons[] = {
@@ -445,6 +519,11 @@ static void apply_input(void)
 		case FDD2_SWAP: if (rose(i)) drive_swap(1); break;
 		case FDD2_EJECT: if (rose(i)) drive_eject(1); break;
 		case RESET: if (rose(i)) machine_reset(); break;
+		case TAPE_PREV: if (rose(i)) tape_step(-1); break;
+		case TAPE_NEXT: if (rose(i)) tape_step(+1); break;
+		case TAPE_SWAP: if (rose(i)) tape_swap(); break;
+		case TAPE_EJECT: if (rose(i)) tape_eject(); break;
+		case TAPE_REWIND: if (rose(i)) tape_rewind(); break;
 		}
 	}
 	/* QUASI88's key_scan: 00h-0Eh the keyboard ports, 0Fh the controller
@@ -543,16 +622,43 @@ ECL_EXPORT int32_t GetMemoryDomainHidden(int32_t i) { return GetMemoryDomainSize
  * QUASI88's status bar shows it (fdc.c get_drive_ready). Every disk of the
  * project can go in either drive: Previous and Next move the selector and
  * Swap puts the selected disk in (apply_input). */
-ECL_EXPORT int32_t GetDriveCount(void) { return g_mediaCount > 0 ? 2 : 0; }
-ECL_EXPORT const char *GetDriveName(int32_t i) { return i == 0 ? "Drive 1" : i == 1 ? "Drive 2" : NULL; }
-ECL_EXPORT int32_t GetDriveLight(int32_t i) { return i >= 0 && i < GetDriveCount() && !get_drive_ready(i); }
-ECL_EXPORT int32_t GetDriveMediaCount(int32_t i) { return i >= 0 && i < GetDriveCount() ? g_mediaCount : 0; }
+/* The floppy drives come first, when the project has a disk, then the data
+ * recorder, when it has a tape: its light is the cassette motor's relay
+ * (port 30h bit 3) with a tape in. */
+static int floppy_drives(void) { return g_mediaCount > 0 ? 2 : 0; }
+static int is_tape(int32_t i) { return g_tapeCount > 0 && i == floppy_drives(); }
+
+ECL_EXPORT int32_t GetDriveCount(void) { return floppy_drives() + (g_tapeCount > 0); }
+ECL_EXPORT const char *GetDriveName(int32_t i)
+{
+	if (is_tape(i)) return "Tape";
+	return i >= 0 && i < floppy_drives() ? (i == 0 ? "Drive 1" : "Drive 2") : NULL;
+}
+ECL_EXPORT int32_t GetDriveLight(int32_t i)
+{
+	if (is_tape(i)) return g_tapeInserted >= 0 && (sys_ctrl & 0x08) != 0;
+	return i >= 0 && i < floppy_drives() && !get_drive_ready(i);
+}
+ECL_EXPORT int32_t GetDriveMediaCount(int32_t i)
+{
+	if (is_tape(i)) return g_tapeCount;
+	return i >= 0 && i < floppy_drives() ? g_mediaCount : 0;
+}
 ECL_EXPORT const char *GetDriveMediaName(int32_t i, int32_t n)
 {
-	return i >= 0 && i < GetDriveCount() && n >= 0 && n < g_mediaCount ? g_media[n].name : NULL;
+	if (is_tape(i)) return n >= 0 && n < g_tapeCount ? g_tapes[n] : NULL;
+	return i >= 0 && i < floppy_drives() && n >= 0 && n < g_mediaCount ? g_media[n].name : NULL;
 }
-ECL_EXPORT int32_t GetDriveMediaSelected(int32_t i) { return i >= 0 && i < 2 ? g_selected[i] : 0; }
-ECL_EXPORT int32_t GetDriveMediaInserted(int32_t i) { return i >= 0 && i < 2 ? g_inserted[i] : -1; }
+ECL_EXPORT int32_t GetDriveMediaSelected(int32_t i)
+{
+	if (is_tape(i)) return g_tapeSelected;
+	return i >= 0 && i < floppy_drives() ? g_selected[i] : 0;
+}
+ECL_EXPORT int32_t GetDriveMediaInserted(int32_t i)
+{
+	if (is_tape(i)) return g_tapeInserted;
+	return i >= 0 && i < floppy_drives() ? g_inserted[i] : -1;
+}
 
 /* ------------------------------------------------------------ registers
  *
@@ -586,12 +692,13 @@ ECL_EXPORT int64_t GetRegisterValue(int32_t i)
 
 /* -------------------------------------------- save data (docs/save-data.md)
  *
- * What a PC-8801 keeps is its disks: every disk file the machine has written
- * to leaves under the name it was mounted with, the whole file, so it goes
- * back into the project as a disk. The bytes go out through the window, a
+ * What a PC-8801 keeps is its disks and tapes: every disk file the machine
+ * has written to leaves under the name it was mounted with, the whole file,
+ * so it goes back into the project as a disk; so does tape-save.cmt, what
+ * it saved to tape. The bytes go out through the window, a
  * piece at a time; the window is ECL_INVISIBLE memory, a view the host reads
  * between frames, not machine state. */
-static int g_saveList[64];
+static int g_saveList[512];
 static int g_saveCount;
 
 ECL_EXPORT int32_t GetSaveDataFileCount(void)

@@ -11,6 +11,17 @@
         "88d"
       ],
       "help": "slot.floppy.help"
+    },
+    {
+      "id": "tape",
+      "title": "slot.tape",
+      "min": 0,
+      "max": -1,
+      "formats": [
+        "t88",
+        "cmt"
+      ],
+      "help": "slot.tape.help"
     }
   ]
 }

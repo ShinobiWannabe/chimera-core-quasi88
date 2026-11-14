@@ -127,7 +127,12 @@
       "Drive 2 Next Disk": "",
       "Drive 2 Swap Disk": "",
       "Drive 2 Eject Disk": "",
-      "Reset": ""
+      "Reset": "",
+      "Tape Previous": "",
+      "Tape Next": "",
+      "Tape Swap": "",
+      "Tape Eject": "",
+      "Tape Rewind": ""
     }
   },
   "AllTrollersAutoFire": {

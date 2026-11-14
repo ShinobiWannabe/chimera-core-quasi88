@@ -127,7 +127,12 @@
 	X("Drive 2 Next Disk", FDD2_NEXT, 0, 0) \
 	X("Drive 2 Swap Disk", FDD2_SWAP, 0, 0) \
 	X("Drive 2 Eject Disk", FDD2_EJECT, 0, 0) \
-	X("Reset", RESET, 0, 0)
+	X("Reset", RESET, 0, 0) \
+	X("Tape Previous", TAPE_PREV, 0, 0) \
+	X("Tape Next", TAPE_NEXT, 0, 0) \
+	X("Tape Swap", TAPE_SWAP, 0, 0) \
+	X("Tape Eject", TAPE_EJECT, 0, 0) \
+	X("Tape Rewind", TAPE_REWIND, 0, 0)
 
 /* the matrix bits each key pulls low, ports 00h-0Eh */
 #define Q88_KEY_MASKS { \

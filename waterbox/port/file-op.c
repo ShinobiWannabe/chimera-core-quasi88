@@ -6,9 +6,11 @@
  * QUASI88 opens is read whole into guest memory the first time, and served
  * from there, so what the machine writes to a disk is written in memory: it
  * is part of every savestate, and it leaves as save data
- * (q88-driver.c), never onto the host's disk. Only ROMs and disks are
- * opened at all: QUASI88's configuration files, state files, snapshots,
- * tapes, printer and serial files are refused, as if they did not exist.
+ * (q88-driver.c), never onto the host's disk. Only ROMs, disks and tapes
+ * are opened at all. A tape QUASI88 saves to is made in memory when it is
+ * not mounted, and leaves as save data like a disk. QUASI88's configuration
+ * files, state files, snapshots, printer and serial files are refused, as
+ * if they did not exist.
  *
  * Built natively too (run-native.c), where the folder the run is in plays
  * the part of the mounts. */
@@ -24,7 +26,8 @@
 
 /* ------------------------------------------------------------ the files */
 
-#define MAX_FILES 64
+/* firmware, every disk and tape of a project, and the tape saved to */
+#define MAX_FILES 512
 
 typedef struct {
 	char *name;
@@ -37,7 +40,7 @@ static vfile g_files[MAX_FILES];
 static int g_fileCount;
 
 /* names that are not opened even when mounted (chimera_file_hide) */
-#define MAX_HIDDEN 12
+#define MAX_HIDDEN 32
 static char g_hidden[MAX_HIDDEN][32];
 static int g_hiddenCount;
 
@@ -49,6 +52,44 @@ void chimera_file_hide(const char *name)
 	}
 }
 
+/* QUASI88 asks for some files in capitals and in small letters
+ * (2608_BD.WAV, then 2608_bd.wav): a hidden name is hidden in either */
+static int same_name_nocase(const char *a, const char *b)
+{
+	for (; *a && *b; a++, b++) {
+		char x = *a >= 'A' && *a <= 'Z' ? (char)(*a + 32) : *a;
+		char y = *b >= 'A' && *b <= 'Z' ? (char)(*b + 32) : *b;
+		if (x != y) return 0;
+	}
+	return *a == *b;
+}
+
+static int is_hidden(const char *name)
+{
+	int i;
+	for (i = 0; i < g_hiddenCount; i++)
+		if (same_name_nocase(g_hidden[i], name)) return 1;
+	return 0;
+}
+
+/* a new, empty file in memory: the tape QUASI88 saves to */
+static int vfile_create(const char *name)
+{
+	vfile *v;
+	if (g_fileCount >= MAX_FILES || !name[0]) return -1;
+	v = &g_files[g_fileCount];
+	v->name = (char *)malloc(strlen(name) + 1);
+	v->data = (uint8_t *)malloc(1);
+	if (!v->name || !v->data) {
+		free(v->name); free(v->data);
+		return -1;
+	}
+	strcpy(v->name, name);
+	v->size = v->cap = 0;
+	v->written = 0;
+	return g_fileCount++;
+}
+
 /* the file of that name, read in now if it is mounted; -1 if it is not */
 static int vfile_find(const char *name)
 {
@@ -56,8 +97,7 @@ static int vfile_find(const char *name)
 	FILE *f;
 	long size;
 	vfile *v;
-	for (i = 0; i < g_hiddenCount; i++)
-		if (strcmp(g_hidden[i], name) == 0) return -1;
+	if (is_hidden(name)) return -1;
 	for (i = 0; i < g_fileCount; i++)
 		if (strcmp(g_files[i].name, name) == 0) return i;
 	if (g_fileCount >= MAX_FILES || !name[0]) return -1;
@@ -142,14 +182,20 @@ OSD_FILE *osd_fopen(int type, const char *path, const char *mode)
 	case FTYPE_ROM:
 	case FTYPE_DISK:
 	case FTYPE_READ:
+	case FTYPE_TAPE_LOAD:
+		if (strchr(mode, 'w') || strchr(mode, 'a')) return NULL;
+		writable = strchr(mode, '+') != NULL && type == FTYPE_DISK;
+		break;
+	case FTYPE_TAPE_SAVE:
+		/* "ab": appended to, made in memory when not mounted */
+		if (!strchr(mode, 'a')) return NULL;
+		writable = 1;
 		break;
 	default:
-		/* configuration, state, snapshot, tape, printer, serial and key
-		 * record files: the core has none */
+		/* configuration, state, snapshot, printer, serial and key record
+		 * files: the core has none */
 		return NULL;
 	}
-	if (strchr(mode, 'w') || strchr(mode, 'a')) return NULL;
-	writable = strchr(mode, '+') != NULL && type == FTYPE_DISK;
 
 	/* a disk already open is shared, as upstream's file layer does it:
 	 * two drives holding disks of one D88 file read one file */
@@ -166,12 +212,13 @@ OSD_FILE *osd_fopen(int type, const char *path, const char *mode)
 		if (!osd_stream[i].used) { st = &osd_stream[i]; break; }
 	if (!st) return NULL;
 	f = vfile_find(path);
+	if (f < 0 && type == FTYPE_TAPE_SAVE && !is_hidden(path)) f = vfile_create(path);
 	if (f < 0) return NULL;
 	st->used = 1;
 	st->file = f;
 	st->type = type;
 	st->writable = writable;
-	st->pos = 0;
+	st->pos = type == FTYPE_TAPE_SAVE ? g_files[f].size : 0;
 	strncpy(st->mode, mode, sizeof st->mode - 1);
 	st->mode[sizeof st->mode - 1] = '\0';
 	return st;
