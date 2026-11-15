@@ -1,0 +1,100 @@
+Trace logger hooks for the Chimera core (waterbox/port/trace.c), in both
+builds (CHIMERA_CORE): a call before each instruction while tracing is on,
+QUASI88's disassembler compiled without its monitor and reading bytes
+through a read with no side effects, and that read for the main CPU.
+
+--- a/src/pc88/pc88main.c
++++ b/src/pc88/pc88main.c
+@@ -899,6 +899,21 @@
+ /*----------------------
+  * メモリ・ライト
+  *----------------------*/
++#if defined(CHIMERA_CORE)
++/* What main_mem_read would return, with nothing changed: a read through
++ * the ALU leaves the VRAM planes in ALU_buf, and this does not (Chimera's
++ * trace logger reads instruction bytes with it, waterbox/port/trace.c). */
++byte chimera_main_peek(word addr)
++{
++	if (addr >= 0xc000 && vram_access_way == VRAM_ACCESS_ALU) {
++		ALU_memory wk;
++		wk.l = ALU_comp.l ^ (main_vram4)[addr & 0x3fff];
++		return wk.c[0] & wk.c[1] & wk.c[2];
++	}
++	return main_mem_read(addr);
++}
++#endif
++
+ void main_mem_write(word addr, byte data)
+ {
+ 	if (addr < 0x8000) {
+--- a/src/pc88/z80-debug.c
++++ b/src/pc88/z80-debug.c
+@@ -12,7 +12,7 @@
+ #include "z80.h"
+ 
+ 
+-#ifdef  USE_MONITOR
++#if defined(USE_MONITOR) || defined(CHIMERA_CORE)
+ /*************************************************************************
+  * 逆アセンブル
+  *************************************************************************/
+@@ -1333,11 +1333,21 @@
+ };
+ 
+ 
++#if defined(CHIMERA_CORE)
++/* Chimera's trace logger reads the bytes without the reads' side effects
++ * (memory waits, the ALU's latch): waterbox/port/trace.c */
++byte chimera_trace_peek(z80arch *z80, word addr);
++#define M_RDMEM(addr)			chimera_trace_peek(z80, (addr))
++#else
+ #define M_RDMEM(addr)			(z80->mem_read)(addr)
++#endif
+ 
+ 
+ static const char *get_machine_code(z80arch *z80, word pc, int num)
+ {
++#if defined(CHIMERA_INVISIBLE)
++	CHIMERA_INVISIBLE		/* scratch, in no savestate (Chimera) */
++#endif
+ 	static char buf[10];		/* 注! 戻り値にこの変数のポインタを返す */
+ 	memset(buf, 0, sizeof(buf));
+ 
+@@ -1531,7 +1541,8 @@
+ 	return op_len;
+ }
+ 
+-
++#endif	/* USE_MONITOR || CHIMERA_CORE */
++#ifdef  USE_MONITOR
+ 
+ void z80_status_show(z80arch *z80, int line, int old_style)
+ {
+--- a/src/pc88/z80.c
++++ b/src/pc88/z80.c
+@@ -157,6 +157,13 @@
+ 
+ #endif
+ 
++#if defined(CHIMERA_CORE)
++/* The trace logger (Chimera: waterbox/port/trace.c). Both builds have it;
++ * with tracing off each instruction costs one flag test. */
++extern int chimera_trace_on;
++void chimera_trace(z80arch *z80);
++#endif
++
+ #if defined(CHIMERA_MEMWATCH)
+ /* The calls at memory (Chimera: waterbox/port/memwatch.c). Only the watch
+  * build has them; with nothing watched each access costs one flag test. */
+@@ -1028,6 +1035,11 @@
+ 				chimera_watch_exec(z80);	/* an instruction is about to run (Chimera) */
+ 			}
+ #endif
++#if defined(CHIMERA_CORE)
++			if (chimera_trace_on) {
++				chimera_trace(z80);			/* a trace line for it (Chimera) */
++			}
++#endif
+ 			/* 命令フェッチ */
+ 			opcode = M_FETCH(z80, z80->PC.W++);
+ 			z80->R ++;

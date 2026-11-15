@@ -15,6 +15,7 @@
  *   Q88_REGS=1         print the CPUs' registers after the run, as REGS
  *   Q88_WAV=file       write the whole run's sound there, as a 44320 Hz
  *                      16-bit stereo .wav
+ *   Q88_TRACE=file[,from]  the trace logger's lines, as trace-script.h describes
  *   out.ppm  the last frame's picture
  *   mem.bin  the main memory domain after the last frame
  */
@@ -27,6 +28,7 @@
 #include "q88-driver.h"
 #include "press-script.h"
 #include "watch-script.h"
+#include "trace-script.h"
 
 /* The guest's allocators, as plain memory. */
 void *alloc_invisible(size_t size) { return calloc(1, size); }
@@ -74,6 +76,8 @@ int main(int argc, char **argv)
 	/* 44320 Hz (0xad20), stereo, 16 bits: 177280 (0x2b480) bytes a second */
 	if (wav) fwrite("RIFF\0\0\0\0WAVEfmt \x10\0\0\0\x01\0\x02\0\x20\xad\0\0\x80\xb4\x02\0\x04\0\x10\0data\0\0\0\0", 1, 44, wav);
 	if (!watch_load()) return 2;
+	if (!trace_load()) return 2;
+	TRACE_BEFORE_INIT(TraceSetEnabled);
 #if defined(CHIMERA_MEMWATCH)
 	if (g_watchCount) SetMemoryCallback((uint64_t)(uintptr_t)watch_called);	/* before Init, as the engine does */
 #else
@@ -91,7 +95,9 @@ int main(int argc, char **argv)
 #endif
 		if (i == stall) usleep(300000);
 		PRESS_APPLY(i, SetButton, SetAxis);
+		TRACE_BEFORE_FRAME(i, TraceSetEnabled);
 		FrameAdvance(0);
+		TRACE_AFTER_FRAME(TraceGetBuffer, TraceGetUsedBytes, TraceGetLineCount, TraceGetOverflow, TraceClear);
 		samples += (uint64_t)GetAudioSampleCount();
 		if (wav) fwrite(GetAudio(), 4, (size_t)GetAudioSampleCount(), wav);
 		for (d = 0; d < GetDriveCount(); d++) lights |= GetDriveLight(d) << d;
@@ -116,6 +122,7 @@ int main(int argc, char **argv)
 			printf(" %s=%llx", GetRegisterName(r), (unsigned long long)GetRegisterValue(r));
 		printf("\n");
 	}
+	trace_report();
 	fprintf(stderr, "%ld frames, %llu sound pairs, %llu clocks\n", frames,
 	        (unsigned long long)samples, (unsigned long long)GetEmulatedClocks());
 	if (argc > 3) write_ppm(argv[3]);

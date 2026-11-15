@@ -6,7 +6,8 @@
  *
  * Usage: run-wbx <core.wbx> <folder> <frames> [out.ppm] [mem.bin]
  *
- * Q88_PRESS, Q88_MOUSE, Q88_SAVEDATA and Q88_WATCH (watch-script.h) as in
+ * Q88_PRESS, Q88_MOUSE, Q88_SAVEDATA, Q88_WATCH (watch-script.h) and
+ * Q88_TRACE (trace-script.h) as in
  * run-native.c; Q88_WATCH needs the package's settings file to turn Lua
  * Memory Events on ({"luaMemoryEvents": true}).
  * Q88_NORENDER=a,b (turbo from a to before b) and Q88_REGS=1, and the same drive
@@ -21,6 +22,7 @@
 #include "minibox.h"
 #include "press-script.h"
 #include "watch-script.h"
+#include "trace-script.h"
 
 #include <dirent.h>
 #include <stdint.h>
@@ -185,6 +187,8 @@ int main(int argc, char **argv)
 		wbx_get_callback_addr(h, count_poll, 3, &r); die(&r, "callback");
 		((void (MB_GUEST_ABI *)(uint64_t))proc(h, "SetInputPollCallback"))((uint64_t)r.data);
 	}
+	if (!trace_load()) return 2;
+	TRACE_BEFORE_INIT(((set1fn)proc(h, "TraceSetEnabled")));
 	if (!((intfn)proc(h, "Init"))()) {
 		char why[256];
 		const char *msg = ((strfn)proc(h, "GetLoadError"))();
@@ -215,6 +219,13 @@ int main(int argc, char **argv)
 		remwfn RemoveWatch = g_watchCount ? (remwfn)proc(h, "RemoveMemoryWatch") : NULL;
 		intfn DriveCount = (intfn)proc(h, "GetDriveCount");
 		i32ifn DriveLight = (i32ifn)proc(h, "GetDriveLight");
+		set1fn TraceSetEnabled = (set1fn)proc(h, "TraceSetEnabled");
+		ptrfn TraceGetBuffer = (ptrfn)proc(h, "TraceGetBuffer");
+		intfn TraceGetUsedBytes = (intfn)proc(h, "TraceGetUsedBytes");
+		intfn TraceGetLineCount = (intfn)proc(h, "TraceGetLineCount");
+		intfn TraceGetOverflow = (intfn)proc(h, "TraceGetOverflow");
+		framefn TraceClear0 = (framefn)proc(h, "TraceClear");
+#define TraceClear() TraceClear0(0)
 		long offFrom = -1, offTo = -1;
 		long stateAt = getenv("Q88_STATE_AT") ? atol(getenv("Q88_STATE_AT")) : -1;
 		if (getenv("Q88_NORENDER")) sscanf(getenv("Q88_NORENDER"), "%ld,%ld", &offFrom, &offTo);
@@ -229,9 +240,11 @@ int main(int argc, char **argv)
 			if (n == offTo) SetRendering(1);
 			PRESS_APPLY(n, SetButton, SetAxis);
 			if (g_watchCount) WATCH_APPLY(n, AddWatch, RemoveWatch);
+			TRACE_BEFORE_FRAME(n, TraceSetEnabled);
 			FrameAdvance(0);
 			wbx_get_death(h, why, sizeof why, &r);
 			if (r.data) { fprintf(stderr, "the guest died at frame %ld: %s\n", n, why); return 3; }
+			TRACE_AFTER_FRAME(TraceGetBuffer, TraceGetUsedBytes, TraceGetLineCount, TraceGetOverflow, TraceClear);
 			samples += (uint64_t)Samples();
 			for (d = 0; d < DriveCount(); d++) lights |= DriveLight(d) << d;
 			printf("%ld %016llx %dx%d %d %016llx %llu %d %x\n", n, (unsigned long long)Digest(),
@@ -242,6 +255,7 @@ int main(int argc, char **argv)
 				hashA ^= AudioDigest(); hashA *= 1099511628211ULL;
 			}
 		}
+		trace_report();
 		if (stateAt >= 0 && st.len) {
 			st.pos = 0;
 			wbx_load_state(h, mem_read, (uintptr_t)&st, &r); die(&r, "load_state");

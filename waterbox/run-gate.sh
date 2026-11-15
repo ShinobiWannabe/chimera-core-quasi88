@@ -148,6 +148,37 @@ else
 	skp "memory events: Xevious.d88 not in Q88_GAMES"
 fi
 
+# ---- the trace logger (port/trace.c, patches/0004) ----
+# Traced from frame 400 to 449 with memory waits on, where a real read of an
+# instruction's bytes would cost the machine time: the trace must leave the
+# run as it was, be the same from native and sandbox, cover both CPUs, and
+# be the same from the watch half.
+path=$(game Xevious.d88)
+if [ -n "$path" ]; then
+	setup t "$path" '{"basicMode":"V1S","memoryWait":true}'
+	$native "$work/t" 450 /dev/null "$work/p.mem" > "$work/p.log" 2>/dev/null
+	Q88_TRACE=$work/n.trace,400 $native "$work/t" 450 /dev/null "$work/n.mem" > "$work/n.log" 2>"$work/n.err"
+	Q88_TRACE=$work/w.trace,400 $wbx "$work/t" 450 /dev/null "$work/w.mem" 2>"$work/w.err" | grep '^[0-9]' > "$work/w.log"
+	tn=$(grep '^TRACE' "$work/n.err"); tw=$(grep '^TRACE' "$work/w.err")
+	if cmp -s "$work/p.log" "$work/n.log" && cmp -s "$work/p.mem" "$work/n.mem" && cmp -s "$work/n.log" "$work/w.log" && cmp -s "$work/n.mem" "$work/w.mem"; then
+		ok "trace: 50 frames traced run the untraced machine (picture, sound, clock, RAM), native and sandbox"
+	else bad "trace: tracing changed the machine, or native and sandbox differ"; fi
+	nm=$(grep -c '^Main ' "$work/n.trace"); ns=$(grep -c '^Sub ' "$work/n.trace")
+	odd=$(grep -cvE '^(Main|Sub) [0-9A-F]{4}: [0-9A-F]+ +[A-Z].*	AF:[0-9A-F]{4} BC:[0-9A-F]{4} DE:[0-9A-F]{4} HL:[0-9A-F]{4} IX:[0-9A-F]{4} IY:[0-9A-F]{4} SP:[0-9A-F]{4}$' "$work/n.trace")
+	case "$tn" in *", 0 overflowed") dropped=0 ;; *) dropped=1 ;; esac
+	if [ -n "$tn" ] && [ "$tn" = "$tw" ] && cmp -s "$work/n.trace" "$work/w.trace" && [ "$nm" -gt 0 ] && [ "$ns" -gt 0 ] && [ "$odd" -eq 0 ] && [ $dropped -eq 0 ]; then
+		ok "trace: native = sandbox, line for line ($nm main CPU and $ns sub CPU lines, none dropped, every line well formed)"
+	else bad "trace: the lines differ or are malformed ($tn / $tw; $nm main, $ns sub, $odd malformed)"; fi
+	setup tw "$path" '{"basicMode":"V1S","memoryWait":true,"luaMemoryEvents":true}'
+	Q88_TRACE=$work/ww.trace,400 $wbx "$work/tw" 450 2>/dev/null | grep '^[0-9]' > "$work/ww.log"
+	if cmp -s "$work/w.trace" "$work/ww.trace" && cmp -s "$work/w.log" "$work/ww.log"; then
+		ok "trace: the watch half (Lua Memory Events on) traces the same lines"
+	else bad "trace: the watch half traces differently"; fi
+	rm -f "$work"/*.trace
+else
+	skp "trace: Xevious.d88 not in Q88_GAMES"
+fi
+
 # ---- time: the host stalling does not move the machine ----
 path=$(game Master_of_Monsters.D88)
 if [ -n "$path" ]; then

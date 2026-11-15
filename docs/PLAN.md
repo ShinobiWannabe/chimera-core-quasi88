@@ -31,7 +31,7 @@ A core for the NEC PC-8801, built like the NP2kai core
 ## 2. The shape (2026-11-14)
 
 - `extern/QUASI88` is the submodule; `patches/` holds the changes. There are
-  two. `0001-input-poll-hooks.patch` adds two calls to `chimera_input_read()`
+  four (0003 and 0004 are sections 14 and 15). `0001-input-poll-hooks.patch` adds two calls to `chimera_input_read()`
   under `CHIMERA_CORE`, where the machine reads its keyboard ports
   (pc88main.c main_io_in, ports 00h-0Fh) and its controller port (soundbd.c
   sound_in_data, registers 0Eh and 0Fh). They mark the frame as one that read
@@ -299,3 +299,32 @@ native and sandbox make the same 12905929, 4355855 and 632695 calls over
 900 frames of Xevious; replacing every write with 0 changes the machine
 (the control); with the setting off the core refuses watches. The watch
 half is about 3% slower (1765 against 1813 frames a second).
+
+## 15. The trace logger (2026-11-15)
+
+The owner asked for trace logging, as the NP2kai core has just added. That
+core's change was not published where this one could read it, so this
+follows Chimera's own trace protocol (its session.cpp, and the synthetic
+core's synth_wbx.c). docs/trace.md says what a line holds and how it is
+built.
+
+Decided without the owner, each easy to change:
+
+- A line for every instruction of both Z80s, the disk unit's too, marked
+  `Main` or `Sub`: a PC-8801 game's disk loading runs on the second CPU.
+- The instruction written by QUASI88's own disassembler (its debugging
+  monitor's), so the core carries no second one.
+- In both builds, so the trace does not need the Lua Memory Events setting.
+- An 8 MiB buffer a frame, about four times the most measured.
+
+`patches/0004-trace-hooks.patch` adds the call, compiles the disassembler
+without the monitor, and adds a read with no side effects for the main CPU.
+Two patches now change the same file (z80.c), which `git apply` given the
+whole series at once refuses, so `waterbox/apply-patches.sh` applies them one
+at a time and tells an already-patched tree by building the patched tree in
+a scratch index.
+
+Measured: the gate's three trace tests (docs/trace.md); the traced run equals
+the untraced one also with CPU timing 2 and at 8 MHz with memory waits, over
+300 traced frames each, with no lines dropped. No cost could be measured
+with the trace off (1781 frames a second against 1768 before).

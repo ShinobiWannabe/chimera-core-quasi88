@@ -27,6 +27,11 @@
 #define INLINE			static __inline__
 #endif
 
+/* Data Chimera keeps out of every savestate (emulibc's ECL_INVISIBLE),
+ * for upstream code the Chimera patches touch: patches/0004 puts the trace
+ * logger's disassembly scratch there. */
+#define CHIMERA_INVISIBLE	__attribute__((section(".ldata.invis")))
+
 #ifndef PI
 #define PI				3.14159265358979323846
 #endif

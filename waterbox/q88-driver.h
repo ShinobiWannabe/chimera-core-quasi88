@@ -47,5 +47,13 @@ int32_t GetMemoryCallbackReplaceable(void);
 void SetMemoryCallback(uint64_t fn);
 int32_t AddMemoryWatch(int32_t kind, int32_t scope, uint64_t address);
 void RemoveMemoryWatch(int32_t kind, int32_t scope, uint64_t address);
+/* the trace logger, port/trace.c */
+void TraceSetEnabled(int32_t on);
+int32_t TraceGetLineCount(void);
+const char *TraceGetBuffer(void);
+int32_t TraceGetOverflow(void);
+int32_t TraceGetUsedBytes(void);
+void TraceClear(void);
+const char *TraceGetHeader(void);
 
 #endif

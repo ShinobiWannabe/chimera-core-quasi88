@@ -68,7 +68,7 @@ run-native.c and run-wbx.c list the other variables.
 
 It builds everything and compares the native reference with the sandboxed
 core on named games, with and without input, around a savestate, with the
-host stalled and in turbo. Without firmware and games the machine tests say
+host stalled and in turbo, with Lua memory events and the trace logger. Without firmware and games the machine tests say
 SKIP. Chimera's contract tests run against the package:
 
     <chimera>/build/meson-linux/source/ui/test-packages build/package

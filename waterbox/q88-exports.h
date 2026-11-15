@@ -48,7 +48,13 @@
 	X(uint64_t, GetFrameDigest, (void), ()) \
 	X(uint64_t, GetAudioDigest, (void), ()) \
 	X(uint64_t, GetEmulatedClocks, (void), ()) \
-	X(uint64_t, GetFrameCount, (void), ())
+	X(uint64_t, GetFrameCount, (void), ()) \
+	X(int32_t, TraceGetLineCount, (void), ()) \
+	X(const char *, TraceGetBuffer, (void), ()) \
+	X(int32_t, TraceGetOverflow, (void), ()) \
+	X(int32_t, TraceGetUsedBytes, (void), ()) \
+	X(void, TraceClear, (void), ()) \
+	X(const char *, TraceGetHeader, (void), ())
 /* Init is not in the table: the entry's own Init picks the half first. */
 
 /* The calls Chimera may make before Init, when no half is chosen yet: the
@@ -56,7 +62,8 @@
  * returning nothing. */
 #define Q88_EXPORTS_BOTH(X) \
 	X(SetInputPollCallback, (uint64_t fn), (fn)) \
-	X(SetRenderingEnabled, (int32_t on), (on))
+	X(SetRenderingEnabled, (int32_t on), (on)) \
+	X(TraceSetEnabled, (int32_t on), (on))
 
 /* The calls at memory (Chimera issues 496, 534 and 571): only the watch
  * half (q88w_) has them; q88-entry.c answers for the plain one. */

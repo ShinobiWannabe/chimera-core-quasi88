@@ -15,6 +15,8 @@ design log, docs/BUILDING.md the build.
   the Lua Memory Events setting chose (`q88-exports.h` lists them).
 - `waterbox/q88-driver.c` - the Chimera ABI: Init, FrameAdvance, picture,
   sound, input, memory, drives, registers, save data.
+- `waterbox/port/trace.c` - the trace logger (docs/trace.md);
+  `waterbox/port/memwatch.c` - the Lua memory events (docs/memory-events.md).
 - `waterbox/q88-flags.sh` - the sources and flags both builds share.
 - `tools/gen-config.py` - the one table of controls, settings, firmware and
   texts. It writes `waterbox/q88-input.h`, `waterbox.config`,

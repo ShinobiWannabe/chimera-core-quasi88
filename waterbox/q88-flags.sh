@@ -42,7 +42,7 @@ $S/snddrv/xmame/src/sound/2203intf.c $S/snddrv/xmame/src/sound/2608intf.c $S/snd
 $S/snddrv/xmame/src/sound/fm.c $S/snddrv/xmame/src/sound/ymdeltat.c $S/snddrv/xmame/src/sound/samples.c
 $S/snddrv/xmame/quasi88/2203fmgen.cpp $S/snddrv/xmame/quasi88/2608fmgen.cpp
 $S/snddrv/fmgen/fmgen.cpp $S/snddrv/fmgen/fmtimer.cpp $S/snddrv/fmgen/opna.cpp $S/snddrv/fmgen/psg.cpp
-$PORT/audio.c $PORT/clock.c $PORT/file-op.c $PORT/graph.c $PORT/memwatch.c $PORT/system.c
+$PORT/audio.c $PORT/clock.c $PORT/file-op.c $PORT/graph.c $PORT/memwatch.c $PORT/system.c $PORT/trace.c
 $HERE/q88-driver.c
 "
 

@@ -37,6 +37,7 @@
 
 #include "port/chimera-port.h"
 #include "port/memwatch.h"
+#include "port/trace.h"
 #include "q88-driver.h"
 #include "q88-input.h"
 
@@ -386,6 +387,7 @@ ECL_EXPORT int Init(void)
 		return 0;
 	}
 	g_saveWindow = (uint8_t *)alloc_invisible(SAVEDATA_WINDOW);
+	chimera_trace_init();
 
 	build_command_line();
 	{

@@ -29,6 +29,10 @@ project with your floppy disk images (`.d88`) and cassette tapes (`.t88`,
 Some games need another BASIC mode (Xevious asks for V1) or CPU clock; those
 are settings of the project.
 
+For a TAS, the core has Chimera's trace logger for both Z80s
+([docs/trace.md](docs/trace.md)) and, with the Lua Memory Events setting,
+Lua events at memory ([docs/memory-events.md](docs/memory-events.md)).
+
 ## Building
 
 See [docs/BUILDING.md](docs/BUILDING.md). In short, on Linux with a Chimera
