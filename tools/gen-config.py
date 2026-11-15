@@ -155,8 +155,8 @@ OTHER = [
 ]
 
 AXES = [
-    {"name": "Mouse X", "min": -180, "max": 180, "neutral": 0, "header": "MX"},
-    {"name": "Mouse Y", "min": -180, "max": 180, "neutral": 0, "header": "MY"},
+    {"name": "Mouse X", "min": -127, "max": 127, "neutral": 0, "header": "MX"},
+    {"name": "Mouse Y", "min": -127, "max": 127, "neutral": 0, "header": "MY"},
 ]
 
 TASTUDIO = [

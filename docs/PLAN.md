@@ -266,7 +266,7 @@ its order (the mouse buttons, the joystick, the drives, Reset), and TAStudio
 shows the same columns at first. In particular: STOP is Shift+Pause alone,
 RETURN takes Enter and the keypad's Enter, CTRL leaves Right Ctrl free, the
 underscore and keypad comma ship unbound, letters, digits and signs carry no
-header of their own, and the mouse axes take -180 to 180. Checked by script:
+header of their own. Checked by script:
 no shared control differs in name, letter, header or binding, and no PC key
 is bound twice.
 
@@ -275,3 +275,11 @@ the PC-98's XFER binding (Alt+Period), KETTEI its NFER one (Alt+Comma); INS
 DEL (the older keyboards' one key), PC, ZENKAKU and the keypad's RETURN ship
 unbound; the tape controls are lettered and headed as the NP2kai core's CD
 drive controls. The keys stay in the PC-8801 keyboard's order.
+
+## 13. The mouse's range (user-decided, 2026-11-15)
+
+The mouse axes take -127 to 127 a frame, not the NP2kai core's -180 to 180.
+The PC-8801's mouse hands over its movement as one signed byte an axis at
+each read, and QUASI88 clips each read to that (pc88/keyboard.c
+keyboard_jop1_strobe); games read it about once a frame. A larger movement
+was not lost but carried to the next read, a frame late.
