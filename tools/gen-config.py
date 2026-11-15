@@ -455,6 +455,31 @@ def main():
     })
     os.makedirs(os.path.join(WB, "languages"), exist_ok=True)
     dump(os.path.join(WB, "languages", "en.json"), {"texts": dict(sorted(texts.items()))})
+    # the other languages (tools/texts/<code>.json, translated from the
+    # English above; docs/translations.md in Chimera): {SAME} and {SOUND} are
+    # the two sentences every setting ends with, worded as in the NP2kai
+    # core's tables; the six drum samples share one wording. A key the table
+    # lacks is left out, and Chimera shows the English.
+    textdir = os.path.join(HERE, "texts")
+    drums = {"bd": "BD", "sd": "SD", "top": "TOP", "hh": "HH", "tom": "TOM", "rim": "RIM"}
+    for name in sorted(os.listdir(textdir)):
+        if not name.endswith(".json"):
+            continue
+        with open(os.path.join(textdir, name), encoding="utf-8") as f:
+            src = json.load(f)
+        out = {}
+        for k, v in src["texts"].items():
+            out[k] = v.replace("{SAME}", src["SAME"]).replace("{SOUND}", src["SOUND"])
+        for d, cap in drums.items():
+            out["firmware.2608_%s_wav" % d] = src["drum_name"].replace("{name}", src["drums"][d])
+            out["firmware.2608_%s_wav.about" % d] = src["drum_about"].replace("{file}", "2608_%s.WAV" % cap)
+        stale = sorted(set(out) - set(texts))
+        if stale:
+            sys.exit("%s: keys English does not have: %s" % (name, ", ".join(stale)))
+        missing = sorted(set(texts) - set(out))
+        if missing:
+            print("gen-config: %s lacks %d texts (shown in English): %s" % (name, len(missing), ", ".join(missing)))
+        dump(os.path.join(WB, "languages", name), {"texts": dict(sorted(out.items()))})
 
     # the driver's table
     lines = ["/* q88-input.h - the controls in wire order. Written by tools/gen-config.py; do not edit. */",
