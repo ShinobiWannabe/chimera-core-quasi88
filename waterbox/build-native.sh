@@ -3,8 +3,9 @@
 # this host, no sandbox. It is where the core is debugged (gdb, printf), and
 # what the gate compares the sandboxed core against.
 #
-# Usage: build-native.sh
-# Output: build/native/run-native
+# Usage: build-native.sh [w]
+#   w: the watch build (the calls at memory, q88-flags.sh), in build/native-w
+# Output: build/native/run-native (build/native-w/run-native)
 #   Q88_OUT=dir      build somewhere else
 #   MINIBOX_DIR=dir  the miniBox checkout (default ../chimera-main/extern/chimera-common-minibox)
 set -u
@@ -17,8 +18,10 @@ MB=${MINIBOX_DIR:-$root/../chimera-main/extern/chimera-common-minibox}
 [ -d "$MB/source/guest/include" ] || { echo "no miniBox at $MB (set MINIBOX_DIR)" >&2; exit 1; }
 sh "$here/apply-patches.sh" || exit 1
 python3 "$root/tools/gen-config.py" >/dev/null || exit 1
+Q88_FLAVOUR=${1:-}
+export Q88_FLAVOUR
 . "$here/q88-flags.sh"
-out=${Q88_OUT:-$root/build/native}
+out=${Q88_OUT:-$root/build/native${Q88_FLAVOUR:+-$Q88_FLAVOUR}}
 obj=$out/obj
 mkdir -p "$obj"
 

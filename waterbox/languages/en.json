@@ -57,6 +57,8 @@
     "setting.fdc_wait.about": "Makes the floppy disk controller take as long as a real one to move the head and wait for the sector to come round (QUASI88's -fdc_wait). On by default, so games load in about the time they take on a real PC-8801. Off, the controller answers almost at once and games load sooner (up to about 2 seconds in the games tried), but that is not as accurate to real hardware. It is part of the machine, so a movie needs the same value.",
     "setting.kanji_level2": "Level 2 Kanji ROM",
     "setting.kanji_level2.about": "Whether the machine has the level 2 kanji ROM (KANJI2.ROM), which holds the less common kanji. On by default; without it those kanji show as blanks. It is part of the machine, so a movie needs the same value.",
+    "setting.lua_memory_events": "Lua Memory Events",
+    "setting.lua_memory_events.about": "Lets Lua scripts stop at memory either Z80 runs, reads or writes (event.on_bus_exec, on_bus_read and on_bus_write), by the address the CPU uses (scope Main CPU or Sub CPU), and change the values read or written. It uses a copy of QUASI88 that checks every instruction and memory access, a little slower, so it is off by default. The machine runs the same either way, so a movie plays back the same with any value. Takes effect when the machine starts.",
     "setting.memory_wait": "Memory Wait",
     "setting.memory_wait.about": "Slows the CPU down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). Off by default, as in QUASI88. It is part of the machine, so a movie needs the same value.",
     "setting.monitor": "Monitor",

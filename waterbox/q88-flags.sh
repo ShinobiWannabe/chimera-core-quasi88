@@ -6,7 +6,8 @@
 # layer's SDL audio), which waterbox/port replaces. USE_MONITOR (upstream's
 # debugging monitor, which reads the host's terminal) is left off.
 #
-# Variables in: Q (the upstream tree), PORT (waterbox/port), HERE (waterbox).
+# Variables in: Q (the upstream tree), PORT (waterbox/port), HERE (waterbox),
+# Q88_FLAVOUR (empty for the plain build, w for the watch build).
 
 S=$Q/src
 Q88_SOURCES="
@@ -41,13 +42,20 @@ $S/snddrv/xmame/src/sound/2203intf.c $S/snddrv/xmame/src/sound/2608intf.c $S/snd
 $S/snddrv/xmame/src/sound/fm.c $S/snddrv/xmame/src/sound/ymdeltat.c $S/snddrv/xmame/src/sound/samples.c
 $S/snddrv/xmame/quasi88/2203fmgen.cpp $S/snddrv/xmame/quasi88/2608fmgen.cpp
 $S/snddrv/fmgen/fmgen.cpp $S/snddrv/fmgen/fmtimer.cpp $S/snddrv/fmgen/opna.cpp $S/snddrv/fmgen/psg.cpp
-$PORT/audio.c $PORT/clock.c $PORT/file-op.c $PORT/graph.c $PORT/system.c
+$PORT/audio.c $PORT/clock.c $PORT/file-op.c $PORT/graph.c $PORT/memwatch.c $PORT/system.c
 $HERE/q88-driver.c
 "
 
 # Upstream's defines (CMakeLists.txt: QUASI88_SDL2 aside), sound with fmgen,
 # and CHIMERA_CORE for the hooks of patches/.
 Q88_DEFINES="-DCHIMERA_CORE -DHAVE_INTPTR_T -DCLIB_DECL= -DUSE_SOUND -DUSE_FMGEN -DPI=M_PI"
+
+# The watch build (Q88_FLAVOUR=w): the same, with the calls at memory
+# (patches/0003 and port/memwatch.c), the half the Lua Memory Events setting
+# picks (q88-entry.c). The plain build has none of it.
+if [ "${Q88_FLAVOUR:-}" = w ]; then
+  Q88_DEFINES="$Q88_DEFINES -DCHIMERA_MEMWATCH"
+fi
 
 # waterbox/port first: its config.h, device.h and filename.h are the system
 # layer's headers.

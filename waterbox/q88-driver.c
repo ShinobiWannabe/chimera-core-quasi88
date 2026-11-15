@@ -36,6 +36,7 @@
 #include "screen.h"
 
 #include "port/chimera-port.h"
+#include "port/memwatch.h"
 #include "q88-driver.h"
 #include "q88-input.h"
 
@@ -633,6 +634,31 @@ ECL_EXPORT int GetMemoryDomainWritable(int i) { int64_t s; int w; dom_ptr(i, &s,
 /* With no extended RAM card its domain has no bytes: kept in the list, so
  * every domain keeps its number, but left out of the memory tools. */
 ECL_EXPORT int32_t GetMemoryDomainHidden(int32_t i) { return GetMemoryDomainSize(i) == 0; }
+
+/* ------------------------------------------------------------ calls at memory
+ *
+ * Chimera issues 496, 534 and 571: a Lua script's event.on_bus_exec,
+ * on_bus_read and on_bus_write stop the machine at an address of either
+ * Z80, part way through a frame, and a read or write may be given another
+ * value. port/memwatch.c keeps what is watched and makes the calls;
+ * everything it keeps is ECL_INVISIBLE, so no savestate carries it. Only
+ * the watch build (CHIMERA_MEMWATCH) has them: the setting Lua Memory Events
+ * picks it (q88-entry.c). */
+#if defined(CHIMERA_MEMWATCH)
+ECL_EXPORT const char *GetMemoryCallbackScopes(void) { return chimera_watch_scopes(); }
+/* reads (1 << 1) and writes (1 << 2) may be changed; an instruction may not */
+ECL_EXPORT int32_t GetMemoryCallbackReplaceable(void) { return (1 << 1) | (1 << 2); }
+ECL_EXPORT const uint64_t *GetMemoryCallbackPc(void) { return chimera_watch_pc(); }
+ECL_EXPORT void SetMemoryCallback(uint64_t fn) { chimera_watch_set_callback(fn); }
+ECL_EXPORT int32_t AddMemoryWatch(int32_t kind, int32_t scope, uint64_t address)
+{
+	return chimera_watch_add(kind, scope, address);
+}
+ECL_EXPORT void RemoveMemoryWatch(int32_t kind, int32_t scope, uint64_t address)
+{
+	chimera_watch_remove(kind, scope, address);
+}
+#endif
 
 /* ------------------------------------------------------------ drives
  *

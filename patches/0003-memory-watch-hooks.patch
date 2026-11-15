@@ -1,0 +1,46 @@
+--- a/src/pc88/z80.c
++++ b/src/pc88/z80.c
+@@ -157,6 +157,31 @@
+ 
+ #endif
+ 
++#if defined(CHIMERA_MEMWATCH)
++/* The calls at memory (Chimera: waterbox/port/memwatch.c). Only the watch
++ * build has them; with nothing watched each access costs one flag test. */
++extern int chimera_watch_read_on, chimera_watch_write_on, chimera_watch_exec_on;
++byte chimera_watch_read(z80arch *z80, word addr, byte data);
++byte chimera_watch_write(z80arch *z80, word addr, byte data);
++void chimera_watch_exec(z80arch *z80);
++INLINE byte chimera_m_rdmem(z80arch *z80, word addr)
++{
++	byte data = (z80->mem_read)(addr);
++	return chimera_watch_read_on ? chimera_watch_read(z80, addr, data) : data;
++}
++INLINE void chimera_m_wrmem(z80arch *z80, word addr, byte data)
++{
++	if (chimera_watch_write_on) {
++		data = chimera_watch_write(z80, addr, data);
++	}
++	(z80->mem_write)(addr, data);
++}
++#undef M_RDMEM
++#undef M_WRMEM
++#define M_RDMEM(z80, addr)			chimera_m_rdmem((z80), (addr))
++#define M_WRMEM(z80, addr, data)	chimera_m_wrmem((z80), (addr), (data))
++#endif
++
+ 
+ 
+ 
+@@ -998,6 +1023,11 @@
+ 			z80->PC_prev = z80->PC;
+ #endif
+ 
++#if defined(CHIMERA_MEMWATCH)
++			if (chimera_watch_exec_on) {
++				chimera_watch_exec(z80);	/* an instruction is about to run (Chimera) */
++			}
++#endif
+ 			/* 命令フェッチ */
+ 			opcode = M_FETCH(z80, z80->PC.W++);
+ 			z80->R ++;

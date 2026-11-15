@@ -6,7 +6,9 @@
  *
  * Usage: run-wbx <core.wbx> <folder> <frames> [out.ppm] [mem.bin]
  *
- * Q88_PRESS, Q88_MOUSE and Q88_SAVEDATA as in run-native.c.
+ * Q88_PRESS, Q88_MOUSE, Q88_SAVEDATA and Q88_WATCH (watch-script.h) as in
+ * run-native.c; Q88_WATCH needs the package's settings file to turn Lua
+ * Memory Events on ({"luaMemoryEvents": true}).
  * Q88_NORENDER=a,b (turbo from a to before b) and Q88_REGS=1, and the same drive
  * lights at the end of each line.
  * Q88_STATE_AT=n saves a state before frame n, runs to the end, loads it and
@@ -18,6 +20,7 @@
  */
 #include "minibox.h"
 #include "press-script.h"
+#include "watch-script.h"
 
 #include <dirent.h>
 #include <stdint.h>
@@ -84,6 +87,14 @@ static uintptr_t MB_GUEST_ABI count_poll(uintptr_t a, uintptr_t b, uintptr_t c, 
 	return 0;
 }
 
+
+/* Q88_WATCH (watch-script.h): the engine's memory callback, slot 4 */
+static uintptr_t MB_GUEST_ABI watch_called(uintptr_t a, uintptr_t b, uintptr_t c, uintptr_t d, uintptr_t e, uintptr_t f)
+{
+	return watch_note(a, b, c, d, e, f);
+}
+typedef int32_t  (MB_GUEST_ABI *addwfn)(int32_t, int32_t, uint64_t);
+typedef void     (MB_GUEST_ABI *remwfn)(int32_t, int32_t, uint64_t);
 
 static uintptr_t proc(mb_host *h, const char *name)
 {
@@ -165,6 +176,11 @@ int main(int argc, char **argv)
 	closedir(d);
 
 	wbx_activate_host(h, &r); die(&r, "activate");
+	if (!watch_load()) return 2;
+	if (g_watchCount) {
+		wbx_get_callback_addr(h, watch_called, 4, &r); die(&r, "memory callback");
+		((void (MB_GUEST_ABI *)(uint64_t))proc(h, "SetMemoryCallback"))((uint64_t)r.data);
+	}
 	if (getenv("Q88_POLLS")) {
 		wbx_get_callback_addr(h, count_poll, 3, &r); die(&r, "callback");
 		((void (MB_GUEST_ABI *)(uint64_t))proc(h, "SetInputPollCallback"))((uint64_t)r.data);
@@ -195,6 +211,8 @@ int main(int argc, char **argv)
 		setfn SetAxis = (setfn)proc(h, "SetAxis");
 
 		set1fn SetRendering = (set1fn)proc(h, "SetRenderingEnabled");
+		addwfn AddWatch = g_watchCount ? (addwfn)proc(h, "AddMemoryWatch") : NULL;
+		remwfn RemoveWatch = g_watchCount ? (remwfn)proc(h, "RemoveMemoryWatch") : NULL;
 		intfn DriveCount = (intfn)proc(h, "GetDriveCount");
 		i32ifn DriveLight = (i32ifn)proc(h, "GetDriveLight");
 		long offFrom = -1, offTo = -1;
@@ -210,6 +228,7 @@ int main(int argc, char **argv)
 			if (n == offFrom) SetRendering(0);
 			if (n == offTo) SetRendering(1);
 			PRESS_APPLY(n, SetButton, SetAxis);
+			if (g_watchCount) WATCH_APPLY(n, AddWatch, RemoveWatch);
 			FrameAdvance(0);
 			wbx_get_death(h, why, sizeof why, &r);
 			if (r.data) { fprintf(stderr, "the guest died at frame %ld: %s\n", n, why); return 3; }
@@ -248,6 +267,8 @@ int main(int argc, char **argv)
 			printf("\n");
 		}
 		if (getenv("Q88_POLLS")) printf("POLLS %ld\n", g_polls);
+		if (g_watchCount)
+			WATCH_REPORT(((strfn)proc(h, "GetMemoryCallbackScopes"))(), ((intfn)proc(h, "GetMemoryCallbackReplaceable"))());
 		if (getenv("Q88_MEDIA")) {
 			/* what each floppy drive holds and its selector is on, and the
 			 * domains the tools hide */

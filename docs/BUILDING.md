@@ -35,8 +35,8 @@ the scripts there with `MINIBOX_BUILD` (the `meson-cpp` folder) and
 
 | Script | What it makes |
 |---|---|
-| `waterbox/build-native.sh` | `build/native/run-native`: the emulator and the driver for this computer, no sandbox. The reference the gate compares against. |
-| `waterbox/build-guest.sh` | `build/wbx/core.wbx`: the same sources for the sandbox, checked by miniBox's `check-wbx.sh`. |
+| `waterbox/build-native.sh [w]` | `build/native/run-native`: the emulator and the driver for this computer, no sandbox. The reference the gate compares against. With `w`, the watch build (Lua memory events) in `build/native-w`. |
+| `waterbox/build-guest.sh` | `build/wbx/core.wbx`: the same sources for the sandbox, built twice (plain and with the calls at memory, docs/memory-events.md) and linked as one image under `q88-entry.c`, checked by miniBox's `check-wbx.sh`. |
 | `waterbox/build-run-wbx.sh` | `build/run-wbx`: runs `core.wbx` through the miniBox host, as Chimera does. |
 | `waterbox/build-package.sh` | `build/package/quasi88-<id>.chimeraCore`: the package. With `-r <chimera>` it is also copied to `<chimera>/build/Cores`. |
 

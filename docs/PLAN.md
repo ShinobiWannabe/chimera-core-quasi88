@@ -283,3 +283,19 @@ The PC-8801's mouse hands over its movement as one signed byte an axis at
 each read, and QUASI88 clips each read to that (pc88/keyboard.c
 keyboard_jop1_strobe); games read it about once a frame. A larger movement
 was not lost but carried to the next read, a frame late.
+
+## 14. Lua memory events, two builds (user-decided, 2026-11-15)
+
+The owner asked for a Lua Memory Events setting built as the NP2kai core
+builds it: the package holds QUASI88 twice, once as it is and once with
+hooks for the bus events, and the setting picks one when the machine
+starts. docs/memory-events.md says what a script sees and how it is built.
+`patches/0003-memory-watch-hooks.patch` adds the hooks to QUASI88's Z80.
+
+Measured (the gate): the watch build with nothing watched runs the plain
+build's machine, native and sandbox; with every address of both CPUs
+watched for instructions, reads and writes the machine is unchanged, and
+native and sandbox make the same 12905929, 4355855 and 632695 calls over
+900 frames of Xevious; replacing every write with 0 changes the machine
+(the control); with the setting off the core refuses watches. The watch
+half is about 3% slower (1765 against 1813 frames a second).

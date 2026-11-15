@@ -11,6 +11,8 @@ design log, docs/BUILDING.md the build.
   `waterbox/apply-patches.sh` (all or none).
 - `waterbox/port/` - QUASI88's system layer for the core (screen, sound,
   files, events, the calendar's clock).
+- `waterbox/q88-entry.c` - the package's exports, passing each call to the half
+  the Lua Memory Events setting chose (`q88-exports.h` lists them).
 - `waterbox/q88-driver.c` - the Chimera ABI: Init, FrameAdvance, picture,
   sound, input, memory, drives, registers, save data.
 - `waterbox/q88-flags.sh` - the sources and flags both builds share.
@@ -23,6 +25,7 @@ design log, docs/BUILDING.md the build.
 
     git submodule update --init
     waterbox/build-native.sh          # build/native/run-native
+    waterbox/build-native.sh w        # build/native-w/run-native, with the calls at memory
     waterbox/build-guest.sh           # build/wbx/core.wbx
     waterbox/build-run-wbx.sh         # build/run-wbx
     Q88_FIRMWARE=... Q88_GAMES=... waterbox/run-gate.sh

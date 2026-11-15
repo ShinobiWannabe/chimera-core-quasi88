@@ -31,10 +31,12 @@ skp() { echo "SKIP  $*"; skip=$((skip + 1)); }
 # ---- builds ----
 if [ -z "${Q88_SKIP_BUILD:-}" ]; then
 	sh "$here/build-native.sh" >/dev/null && ok "native reference builds" || { bad "native reference builds"; exit 1; }
-	sh "$here/build-guest.sh" >/dev/null && ok "core.wbx builds and check-wbx.sh finds it clean" || { bad "core.wbx builds"; exit 1; }
+	sh "$here/build-native.sh" w >/dev/null && ok "native reference builds with the calls at memory" || { bad "native watch build"; exit 1; }
+	sh "$here/build-guest.sh" >/dev/null && ok "core.wbx builds (both halves) and check-wbx.sh finds it clean" || { bad "core.wbx builds"; exit 1; }
 	sh "$here/build-run-wbx.sh" >/dev/null && ok "run-wbx builds" || { bad "run-wbx builds"; exit 1; }
 fi
 native=$build/native/run-native
+nativew=$build/native-w/run-native
 wbx="$build/run-wbx $build/wbx/core.wbx"
 
 # ---- the declarations agree with the driver ----
@@ -116,6 +118,34 @@ if [ -n "$path" ]; then
 	case "$r" in "STATE DIFFER"*) ok "savestate control: an extra press after the load is seen" ;; *) bad "savestate control: an extra press was not seen ($r)" ;; esac
 else
 	skp "input, lag frames and savestates: Xevious.d88 not in Q88_GAMES"
+fi
+
+# ---- Lua memory events: the watch half (q88-entry.c, port/memwatch.c) ----
+path=$(game Xevious.d88)
+if [ -n "$path" ]; then
+	setup t "$path" '{"basicMode":"V1S"}'
+	$native "$work/t" 900 > "$work/p.log" 2>/dev/null
+	setup tw "$path" '{"basicMode":"V1S","luaMemoryEvents":true}'
+	$nativew "$work/tw" 900 > "$work/a.log" 2>/dev/null
+	$wbx "$work/tw" 900 2>/dev/null | grep '^[0-9]' > "$work/b.log"
+	if cmp -s "$work/p.log" "$work/a.log" && cmp -s "$work/p.log" "$work/b.log"; then
+		ok "memory events: the watch build with nothing watched runs the plain build's machine (native and sandbox)"
+	else bad "memory events: the watch build differs from the plain one"; fi
+	W="x:any,r:any,w:any,x1:any,r1:any,w1:any"
+	Q88_WATCH=$W Q88_WATCH_MAX=0 $nativew "$work/tw" 900 > "$work/a.log" 2>/dev/null
+	Q88_WATCH=$W Q88_WATCH_MAX=0 $wbx "$work/tw" 900 > "$work/b.log" 2>/dev/null
+	ca=$(grep -A2 '^WATCH scopes' "$work/a.log" | grep -o 'x=.*'); cb=$(grep -A2 '^WATCH scopes' "$work/b.log" | grep -o 'x=.*')
+	if [ -n "$ca" ] && [ "$ca" = "$cb" ] && grep '^[0-9]' "$work/a.log" | cmp -s - "$work/p.log" && grep '^[0-9]' "$work/b.log" | cmp -s - "$work/p.log"; then
+		ok "memory events: every address of both CPUs watched, the machine is unchanged and native = sandbox ($ca)"
+	else bad "memory events: watching changed the machine, or native and sandbox called differently ($ca / $cb)"; fi
+	# the control: a script's replacement value reaches the machine
+	Q88_WATCH="w:any=0" Q88_WATCH_MAX=0 $nativew "$work/tw" 900 > "$work/c.log" 2>/dev/null
+	if grep '^[0-9]' "$work/c.log" | cmp -s - "$work/p.log"; then bad "memory events: a replaced write changed nothing"
+	else ok "memory events: every write replaced with 0 changes the machine, as a script's value should"; fi
+	r=$(Q88_WATCH="r:any" $wbx "$work/t" 10 2>&1 | grep -c "would not watch")
+	[ "$r" -ge 1 ] && ok "memory events: with the setting off the core refuses watches" || bad "memory events: the plain half took a watch"
+else
+	skp "memory events: Xevious.d88 not in Q88_GAMES"
 fi
 
 # ---- time: the host stalling does not move the machine ----

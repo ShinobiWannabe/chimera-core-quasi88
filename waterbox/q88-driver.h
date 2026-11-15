@@ -42,5 +42,10 @@ int32_t GetRegisterCount(void);
 const char *GetRegisterName(int32_t i);
 int64_t GetRegisterValue(int32_t i);
 void SetInputPollCallback(uint64_t fn);
+const char *GetMemoryCallbackScopes(void);
+int32_t GetMemoryCallbackReplaceable(void);
+void SetMemoryCallback(uint64_t fn);
+int32_t AddMemoryWatch(int32_t kind, int32_t scope, uint64_t address);
+void RemoveMemoryWatch(int32_t kind, int32_t scope, uint64_t address);
 
 #endif

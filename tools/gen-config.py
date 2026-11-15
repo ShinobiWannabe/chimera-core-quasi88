@@ -258,6 +258,12 @@ SETTINGS = [
               "your computer." + SAME},
     {"name": "rhythmSamples", "type": "bool", "default": False, "sync": True, "display": "Rhythm Samples",
      "about": "Whether the drums of the YM2608 (Sound Board II) play. They are recordings that no ROM of the PC-8801 holds: with the MAME Sound Generator they come from the YM2608's drum ROM as MAME dumps it (ym2608_adpcm_rom.bin, 8 KiB), with fmgen from the six 2608_*.WAV files PC-88 and PC-98 emulators share. Off by default, as the drums are then silent, which needs no file." + SAME},
+    {"name": "luaMemoryEvents", "type": "bool", "default": False, "sync": True, "display": "Lua Memory Events",
+     "about": "Lets Lua scripts stop at memory either Z80 runs, reads or writes (event.on_bus_exec, on_bus_read and "
+              "on_bus_write), by the address the CPU uses (scope Main CPU or Sub CPU), and change the values "
+              "read or written. It uses a copy of QUASI88 that checks every instruction and memory access, a "
+              "little slower, so it is off by default. The machine runs the same either way, so a movie plays "
+              "back the same with any value. Takes effect when the machine starts."},
     {"name": "volumeFM", "type": "int", "default": 100, "min": 0, "max": 100, "display": "FM Volume",
      "about": "The FM music of the sound chip, in per cent. The default, 100, is QUASI88's." + SOUND_ONLY},
     {"name": "volumeSSG", "type": "int", "default": 20, "min": 0, "max": 100, "display": "SSG Volume",
