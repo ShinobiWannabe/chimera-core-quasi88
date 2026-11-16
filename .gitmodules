@@ -1,3 +1,4 @@
 [submodule "extern/QUASI88"]
 	path = extern/QUASI88
 	url = https://github.com/bubio/QUASI88
+	ignore = dirty
