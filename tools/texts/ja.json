@@ -49,7 +49,7 @@
     "setting.fdc_wait": "ディスクアクセス時間",
     "setting.fdc_wait.about": "フロッピーディスクコントローラが、ヘッドの移動とセクタが回ってくるのを待つのに実機と同じだけ時間をかけるようにします（QUASI88 の -fdc_wait）。既定ではオンで、ゲームは実際の PC-8801 とほぼ同じ時間で読み込まれます。オフにするとコントローラはほぼすぐ応答し、ゲームは早く読み込まれます（試したゲームで最大約 2 秒）が、実機ほど正確ではありません。{SAME}",
     "setting.kanji_level2": "第 2 水準漢字 ROM",
-    "setting.kanji_level2.about": "あまり使われない漢字を収めた第 2 水準漢字 ROM（KANJI2.ROM）をマシンが持つかどうかです。既定ではオンで、ないとそれらの漢字は空白になります。{SAME}",
+    "setting.kanji_level2.about": "あまり使われない漢字を収めた第 2 水準漢字 ROM（KANJI2.ROM）をマシンが持つかどうかです。既定ではオフで、ないとそれらの漢字は空白になります。{SAME}",
     "setting.lua_memory_events": "Lua メモリイベント",
     "setting.lua_memory_events.about": "どちらかの Z80 が実行・読み取り・書き込みするメモリで Lua スクリプトを止められるようにします（event.on_bus_exec、on_bus_read、on_bus_write）。アドレスは CPU が使うもの（スコープ Main CPU または Sub CPU）で、読み書きされる値を変えることもできます。すべての命令とメモリアクセスを確かめる QUASI88 のコピーを使うため少し遅くなり、既定ではオフです。どちらでもマシンの動作は同じなので、movie はどの値でも同じように再生されます。マシンの起動時に反映されます。",
     "setting.memory_wait": "メモリウェイト",

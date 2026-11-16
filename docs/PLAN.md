@@ -151,6 +151,13 @@ setting's description warns about mixing.
 The kanji ROMs are separate either way. The font comes from KANJI1.ROM, as
 QUASI88 does it when no FONT.ROM is given, so no font file is declared.
 
+KANJI2.ROM is asked for only with the Level 2 Kanji ROM setting on, and that
+setting is off by default (changed 2026-11-16). QUASI88 itself starts
+without the file: memory.c loads it like KANJI1.ROM but never checks the
+result, and a missing ROM reads as 0xFF, as on a machine without one. The
+gate already ran with PC88.ROM and KANJI1.ROM alone. So by default a project
+asks for two files, PC88.ROM and KANJI1.ROM, which is what Init checks for.
+
 ## 9a. Every format QUASI88 reads (2026-11-14)
 
 What QUASI88 opens, from every osd_fopen call in the sources it compiles:

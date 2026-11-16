@@ -49,7 +49,7 @@
     "setting.fdc_wait": "Timp de acces la disc",
     "setting.fdc_wait.about": "Face controlerul de dischete să ia la fel de mult timp ca unul real ca să mute capul și să aștepte sectorul (-fdc_wait din QUASI88). Pornit implicit, ca jocurile să se încarce cam în timpul pe care îl iau pe un PC-8801 real. Oprit, controlerul răspunde aproape imediat și jocurile se încarcă mai devreme (până la circa 2 secunde în jocurile încercate), dar asta nu este la fel de fidel hardware-ului real. {SAME}",
     "setting.kanji_level2": "ROM kanji nivelul 2",
-    "setting.kanji_level2.about": "Dacă mașina are ROM-ul kanji de nivelul 2 (KANJI2.ROM), cu kanji mai rar folosite. Pornit implicit; fără el, acele kanji apar goale. {SAME}",
+    "setting.kanji_level2.about": "Dacă mașina are ROM-ul kanji de nivelul 2 (KANJI2.ROM), cu kanji mai rar folosite. Oprit implicit; fără el, acele kanji apar goale. {SAME}",
     "setting.lua_memory_events": "Evenimente de memorie Lua",
     "setting.lua_memory_events.about": "Permite scripturilor Lua să se oprească la memoria pe care oricare dintre cele două Z80 o execută, o citește sau o scrie (event.on_bus_exec, on_bus_read și on_bus_write), după adresa pe care o folosește procesorul (domeniul Main CPU sau Sub CPU), și să schimbe valorile citite sau scrise. Folosește o copie a QUASI88 care verifică fiecare instrucțiune și fiecare acces la memorie, puțin mai lentă, de aceea este oprit implicit. Mașina rulează la fel în ambele cazuri, deci un movie se redă la fel cu orice valoare. Se aplică la pornirea mașinii.",
     "setting.memory_wait": "Așteptare la memorie",

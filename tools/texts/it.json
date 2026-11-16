@@ -49,7 +49,7 @@
     "setting.fdc_wait": "Tempo di accesso al disco",
     "setting.fdc_wait.about": "Fa impiegare al controller floppy lo stesso tempo di uno vero per spostare la testina e attendere il settore (-fdc_wait di QUASI88). Attivo per impostazione predefinita, così i giochi caricano in circa il tempo che impiegano su un vero PC-8801. Disattivato, il controller risponde quasi subito e i giochi caricano prima (fino a circa 2 secondi nei giochi provati), ma non è altrettanto fedele all'hardware reale. {SAME}",
     "setting.kanji_level2": "ROM kanji di livello 2",
-    "setting.kanji_level2.about": "Se la macchina ha la ROM kanji di livello 2 (KANJI2.ROM), con i kanji meno comuni. Attivo per impostazione predefinita; senza di essa quei kanji appaiono vuoti. {SAME}",
+    "setting.kanji_level2.about": "Se la macchina ha la ROM kanji di livello 2 (KANJI2.ROM), con i kanji meno comuni. Disattivato per impostazione predefinita; senza di essa quei kanji appaiono vuoti. {SAME}",
     "setting.lua_memory_events": "Eventi di memoria Lua",
     "setting.lua_memory_events.about": "Permette agli script Lua di fermarsi sulla memoria che uno dei due Z80 esegue, legge o scrive (event.on_bus_exec, on_bus_read e on_bus_write), secondo l'indirizzo che usa la CPU (ambito Main CPU o Sub CPU), e di cambiare i valori letti o scritti. Usa una copia di QUASI88 che controlla ogni istruzione e ogni accesso alla memoria, un po' più lenta, perciò è disattivato per impostazione predefinita. La macchina funziona allo stesso modo in entrambi i casi, quindi un movie si riproduce allo stesso modo con qualsiasi valore. Ha effetto all'avvio della macchina.",
     "setting.memory_wait": "Attesa della memoria",

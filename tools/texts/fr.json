@@ -49,7 +49,7 @@
     "setting.fdc_wait": "Temps d'accès disque",
     "setting.fdc_wait.about": "Fait mettre au contrôleur de disquettes autant de temps qu'un vrai pour déplacer la tête et attendre que le secteur passe (-fdc_wait de QUASI88). Activé par défaut, pour que les jeux se chargent à peu près dans le temps qu'ils prennent sur un vrai PC-8801. Désactivé, le contrôleur répond presque immédiatement et les jeux se chargent plus tôt (jusqu'à environ 2 secondes dans les jeux essayés), mais c'est moins fidèle au vrai matériel. {SAME}",
     "setting.kanji_level2": "ROM de kanji niveau 2",
-    "setting.kanji_level2.about": "Si la machine possède la ROM de kanji de niveau 2 (KANJI2.ROM), qui contient les kanji moins courants. Activé par défaut ; sans elle, ces kanji s'affichent en blanc. {SAME}",
+    "setting.kanji_level2.about": "Si la machine possède la ROM de kanji de niveau 2 (KANJI2.ROM), qui contient les kanji moins courants. Désactivé par défaut ; sans elle, ces kanji s'affichent en blanc. {SAME}",
     "setting.lua_memory_events": "Événements mémoire Lua",
     "setting.lua_memory_events.about": "Permet aux scripts Lua de s'arrêter sur la mémoire que l'un des deux Z80 exécute, lit ou écrit (event.on_bus_exec, on_bus_read et on_bus_write), selon l'adresse qu'utilise le processeur (portée Main CPU ou Sub CPU), et de changer les valeurs lues ou écrites. Il utilise une copie de QUASI88 qui vérifie chaque instruction et chaque accès mémoire, un peu plus lente, c'est pourquoi il est désactivé par défaut. La machine fonctionne de la même façon dans les deux cas, donc un movie se rejoue de la même façon avec n'importe quelle valeur. Prend effet au démarrage de la machine.",
     "setting.memory_wait": "Attente mémoire",

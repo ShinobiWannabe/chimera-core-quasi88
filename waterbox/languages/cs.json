@@ -56,7 +56,7 @@
     "setting.fdc_wait": "Doba přístupu k disku",
     "setting.fdc_wait.about": "Nechá řadič disket potřebovat stejně času jako skutečný na posun hlavy a čekání na sektor (-fdc_wait v QUASI88). Ve výchozím stavu zapnuto, takže se hry načítají přibližně stejně dlouho jako na skutečném PC-8801. Vypnuto řadič odpovídá téměř hned a hry se načtou dřív (až asi o 2 sekundy ve vyzkoušených hrách), ale není to tak věrné skutečnému hardwaru. Je součástí stroje, takže movie potřebuje stejnou hodnotu.",
     "setting.kanji_level2": "ROM kanji úrovně 2",
-    "setting.kanji_level2.about": "Zda má stroj ROM kanji úrovně 2 (KANJI2.ROM) s méně častými kanji. Ve výchozím stavu zapnuto; bez ní se tato kanji zobrazují prázdná. Je součástí stroje, takže movie potřebuje stejnou hodnotu.",
+    "setting.kanji_level2.about": "Zda má stroj ROM kanji úrovně 2 (KANJI2.ROM) s méně častými kanji. Ve výchozím stavu vypnuto; bez ní se tato kanji zobrazují prázdná. Je součástí stroje, takže movie potřebuje stejnou hodnotu.",
     "setting.lua_memory_events": "Paměťové události Lua",
     "setting.lua_memory_events.about": "Umožňuje skriptům Lua zastavit se u paměti, kterou kterýkoli ze dvou Z80 vykonává, čte nebo zapisuje (event.on_bus_exec, on_bus_read a on_bus_write), podle adresy, kterou používá procesor (rozsah Main CPU nebo Sub CPU), a měnit čtené či zapisované hodnoty. Používá kopii QUASI88, která kontroluje každou instrukci a každý přístup do paměti, o něco pomalejší, proto je ve výchozím stavu vypnuto. Stroj běží v obou případech stejně, takže se movie přehraje stejně s jakoukoli hodnotou. Projeví se při spuštění stroje.",
     "setting.memory_wait": "Čekání paměti",

@@ -49,7 +49,7 @@
     "setting.fdc_wait": "Diskåtkomsttid",
     "setting.fdc_wait.about": "Låter diskettstyrenheten ta lika lång tid som en riktig på att flytta huvudet och vänta på sektorn (QUASI88:s -fdc_wait). På som standard, så att spel laddas på ungefär den tid de tar på en riktig PC-8801. Av svarar styrenheten nästan direkt och spel laddas tidigare (upp till cirka 2 sekunder i de testade spelen), men det är inte lika troget riktig hårdvara. {SAME}",
     "setting.kanji_level2": "Kanji-ROM nivå 2",
-    "setting.kanji_level2.about": "Om maskinen har kanji-ROM:et för nivå 2 (KANJI2.ROM), med de ovanligare kanji-tecknen. På som standard; utan det visas de tecknen tomma. {SAME}",
+    "setting.kanji_level2.about": "Om maskinen har kanji-ROM:et för nivå 2 (KANJI2.ROM), med de ovanligare kanji-tecknen. Av som standard; utan det visas de tecknen tomma. {SAME}",
     "setting.lua_memory_events": "Lua-minneshändelser",
     "setting.lua_memory_events.about": "Låter Lua-skript stanna vid minne som någon av de två Z80 kör, läser eller skriver (event.on_bus_exec, on_bus_read och on_bus_write), efter den adress processorn använder (område Main CPU eller Sub CPU), och ändra värdena som läses eller skrivs. Den använder en kopia av QUASI88 som kontrollerar varje instruktion och varje minnesåtkomst, lite långsammare, så den är av som standard. Maskinen kör likadant i båda fallen, så en movie spelas upp likadant med vilket värde som helst. Gäller när maskinen startar.",
     "setting.memory_wait": "Minnesväntan",

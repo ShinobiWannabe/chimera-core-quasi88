@@ -245,9 +245,9 @@ SETTINGS = [
      "display": "Extended RAM Cards",
      "about": "How many 128 KB extended RAM cards are fitted. The default is none. A few programs use "
               "them." + SAME},
-    {"name": "kanjiLevel2", "type": "bool", "default": True, "sync": True, "display": "Level 2 Kanji ROM",
+    {"name": "kanjiLevel2", "type": "bool", "default": False, "sync": True, "display": "Level 2 Kanji ROM",
      "about": "Whether the machine has the level 2 kanji ROM (KANJI2.ROM), which holds the less common "
-              "kanji. On by default; without it those kanji show as blanks." + SAME},
+              "kanji. Off by default; without it those kanji show as blanks." + SAME},
     {"name": "dictionaryRom", "type": "bool", "default": False, "sync": True, "display": "Dictionary ROM",
      "about": "Whether the machine has the dictionary ROM (N88JISHO.ROM) of the later models, used by "
               "their kana to kanji conversion. Off by default." + SAME},

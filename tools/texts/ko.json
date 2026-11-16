@@ -49,7 +49,7 @@
     "setting.fdc_wait": "디스크 접근 시간",
     "setting.fdc_wait.about": "플로피 디스크 컨트롤러가 헤드를 옮기고 섹터가 돌아올 때까지 실제 기계만큼 시간을 들이게 합니다(QUASI88의 -fdc_wait). 기본값은 켜짐으로, 게임이 실제 PC-8801과 거의 같은 시간에 로드됩니다. 끄면 컨트롤러가 거의 바로 응답해 게임이 더 빨리 로드되지만(시험한 게임에서 최대 약 2초), 실제 하드웨어만큼 정확하지는 않습니다. {SAME}",
     "setting.kanji_level2": "제2수준 한자 ROM",
-    "setting.kanji_level2.about": "덜 쓰이는 한자가 든 제2수준 한자 ROM(KANJI2.ROM)을 기계가 가지는지입니다. 기본값은 켜짐이며, 없으면 그 한자들은 빈칸으로 보입니다. {SAME}",
+    "setting.kanji_level2.about": "덜 쓰이는 한자가 든 제2수준 한자 ROM(KANJI2.ROM)을 기계가 가지는지입니다. 기본값은 꺼짐이며, 없으면 그 한자들은 빈칸으로 보입니다. {SAME}",
     "setting.lua_memory_events": "Lua 메모리 이벤트",
     "setting.lua_memory_events.about": "두 Z80 중 하나가 실행하거나 읽거나 쓰는 메모리에서 Lua 스크립트가 멈출 수 있게 합니다(event.on_bus_exec, on_bus_read, on_bus_write). 주소는 CPU가 쓰는 주소(범위 Main CPU 또는 Sub CPU)이며, 읽거나 쓰는 값을 바꿀 수도 있습니다. 모든 명령과 메모리 접근을 확인하는 QUASI88 사본을 사용해 조금 느려지므로 기본값은 꺼짐입니다. 어느 쪽이든 머신은 똑같이 동작하므로 movie는 어떤 값에서도 똑같이 재생됩니다. 머신이 시작될 때 적용됩니다.",
     "setting.memory_wait": "메모리 대기",

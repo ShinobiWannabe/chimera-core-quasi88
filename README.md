@@ -22,7 +22,8 @@ project with your floppy disk images (`.d88`) and cassette tapes (`.t88`,
   (the default), or QUASI88's separate files (`N88.ROM`, `N88_0.ROM` to
   `N88_3.ROM`, `N88N.ROM`, `DISK.ROM`) with the ROM Files setting changed.
   The files of a set must all come from one machine.
-- `KANJI1.ROM`, and `KANJI2.ROM` unless the Level 2 Kanji ROM setting is off.
+- `KANJI1.ROM`, and `KANJI2.ROM` only with the Level 2 Kanji ROM setting on
+  (off by default).
 - For the drums of Sound Board II, only with the Rhythm Samples setting on:
   `ym2608_adpcm_rom.bin` (MAME's generator) or the six `2608_*.WAV` (fmgen).
 

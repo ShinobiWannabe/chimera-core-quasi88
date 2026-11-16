@@ -56,7 +56,7 @@
     "setting.fdc_wait": "磁碟存取時間",
     "setting.fdc_wait.about": "讓軟碟控制器像真機一樣花時間移動磁頭並等待磁區轉到（QUASI88 的 -fdc_wait）。預設開啟，遊戲的載入時間與真實 PC-8801 大致相同。關閉後控制器幾乎立即回應，遊戲載入更快（在測試過的遊戲中最多快約 2 秒），但不如真實硬體準確。它是機器的一部分，因此 movie 需要相同的值。",
     "setting.kanji_level2": "第二水準漢字 ROM",
-    "setting.kanji_level2.about": "機器是否有存放較少用漢字的第二水準漢字 ROM（KANJI2.ROM）。預設開啟；沒有它時這些漢字顯示為空白。它是機器的一部分，因此 movie 需要相同的值。",
+    "setting.kanji_level2.about": "機器是否有存放較少用漢字的第二水準漢字 ROM（KANJI2.ROM）。預設關閉；沒有它時這些漢字顯示為空白。它是機器的一部分，因此 movie 需要相同的值。",
     "setting.lua_memory_events": "Lua 記憶體事件",
     "setting.lua_memory_events.about": "讓 Lua 腳本在任一 Z80 執行、讀取或寫入的記憶體處停下（event.on_bus_exec、on_bus_read 和 on_bus_write），位址以 CPU 使用的位址為準（範圍 Main CPU 或 Sub CPU），並可更改讀取或寫入的值。它使用會檢查每道指令和每次記憶體存取的 QUASI88 副本，稍慢一些，因此預設關閉。兩種情況下機器的運作都相同，因此 movie 在任何值下都會同樣重播。在機器啟動時生效。",
     "setting.memory_wait": "記憶體等待",

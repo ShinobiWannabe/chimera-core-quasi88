@@ -56,7 +56,7 @@
     "setting.fdc_wait": "Levyn käyttöaika",
     "setting.fdc_wait.about": "Saa levykeohjaimen käyttämään yhtä paljon aikaa kuin oikea pään siirtämiseen ja sektorin odottamiseen (QUASI88:n -fdc_wait). Oletuksena päällä, joten pelit latautuvat suunnilleen siinä ajassa kuin oikealla PC-8801:llä. Pois päältä ohjain vastaa lähes heti ja pelit latautuvat aiemmin (enintään noin 2 sekuntia kokeilluissa peleissä), mutta se ei ole yhtä tarkka kuin oikea laitteisto. Se on osa konetta, joten movie tarvitsee saman arvon.",
     "setting.kanji_level2": "Tason 2 kanji-ROM",
-    "setting.kanji_level2.about": "Onko koneessa tason 2 kanji-ROM (KANJI2.ROM), jossa ovat harvinaisemmat kanjit. Oletuksena päällä; ilman sitä nuo kanjit näkyvät tyhjinä. Se on osa konetta, joten movie tarvitsee saman arvon.",
+    "setting.kanji_level2.about": "Onko koneessa tason 2 kanji-ROM (KANJI2.ROM), jossa ovat harvinaisemmat kanjit. Oletuksena pois; ilman sitä nuo kanjit näkyvät tyhjinä. Se on osa konetta, joten movie tarvitsee saman arvon.",
     "setting.lua_memory_events": "Lua-muistitapahtumat",
     "setting.lua_memory_events.about": "Antaa Lua-skriptien pysähtyä muistiin, jota jompikumpi kahdesta Z80:stä suorittaa, lukee tai kirjoittaa (event.on_bus_exec, on_bus_read ja on_bus_write), suorittimen käyttämän osoitteen mukaan (alue Main CPU tai Sub CPU), ja muuttaa luettuja tai kirjoitettuja arvoja. Se käyttää QUASI88:n kopiota, joka tarkistaa jokaisen käskyn ja muistiviittauksen ja on hieman hitaampi, joten se on oletuksena pois päältä. Kone toimii samoin molemmissa tapauksissa, joten movie toistuu samoin millä tahansa arvolla. Tulee voimaan, kun kone käynnistyy.",
     "setting.memory_wait": "Muistin odotus",

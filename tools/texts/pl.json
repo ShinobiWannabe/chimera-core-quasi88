@@ -49,7 +49,7 @@
     "setting.fdc_wait": "Czas dostępu do dysku",
     "setting.fdc_wait.about": "Sprawia, że kontroler dyskietek potrzebuje tyle czasu co prawdziwy, by przesunąć głowicę i poczekać na sektor (-fdc_wait z QUASI88). Domyślnie włączone, więc gry wczytują się mniej więcej tak długo jak na prawdziwym PC-8801. Po wyłączeniu kontroler odpowiada prawie od razu i gry wczytują się szybciej (do około 2 sekund w sprawdzonych grach), ale nie jest to tak wierne prawdziwemu sprzętowi. {SAME}",
     "setting.kanji_level2": "ROM kanji poziomu 2",
-    "setting.kanji_level2.about": "Czy maszyna ma ROM kanji poziomu 2 (KANJI2.ROM) z rzadszymi kanji. Domyślnie włączone; bez niego te kanji są puste. {SAME}",
+    "setting.kanji_level2.about": "Czy maszyna ma ROM kanji poziomu 2 (KANJI2.ROM) z rzadszymi kanji. Domyślnie wyłączone; bez niego te kanji są puste. {SAME}",
     "setting.lua_memory_events": "Zdarzenia pamięci Lua",
     "setting.lua_memory_events.about": "Pozwala skryptom Lua zatrzymywać się na pamięci, którą któryś z dwóch Z80 wykonuje, odczytuje lub zapisuje (event.on_bus_exec, on_bus_read i on_bus_write), według adresu, którego używa procesor (zakres Main CPU lub Sub CPU), i zmieniać odczytywane lub zapisywane wartości. Używa kopii QUASI88, która sprawdza każdą instrukcję i każdy dostęp do pamięci, nieco wolniejszej, dlatego domyślnie jest wyłączone. Maszyna działa tak samo w obu przypadkach, więc movie odtwarza się tak samo przy każdej wartości. Działa od uruchomienia maszyny.",
     "setting.memory_wait": "Oczekiwanie pamięci",

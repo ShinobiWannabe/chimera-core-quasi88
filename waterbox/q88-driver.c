@@ -183,7 +183,7 @@ static void build_command_line(void)
 	setting_str("bootFrom", "Disk", s, sizeof s);
 	arg(!strcmp(s, "ROM") ? "-romboot" : "-diskboot");
 	arg_long("-extram", clamp_long(wbx_setting_long("extraRam", 0), 0, 16));
-	g_kanji2 = wbx_setting_bool("kanjiLevel2", 1) != 0;
+	g_kanji2 = wbx_setting_bool("kanjiLevel2", 0) != 0;
 	g_jisho = wbx_setting_bool("dictionaryRom", 0) != 0;
 	g_rhythm = wbx_setting_bool("rhythmSamples", 0) != 0;
 	arg(g_jisho ? "-jisho" : "-nojisho");

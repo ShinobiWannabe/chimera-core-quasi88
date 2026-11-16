@@ -56,7 +56,7 @@
     "setting.fdc_wait": "Thời gian truy cập đĩa",
     "setting.fdc_wait.about": "Khiến bộ điều khiển đĩa mềm mất thời gian như bộ thật để di chuyển đầu đọc và chờ sector quay tới (-fdc_wait của QUASI88). Mặc định bật, để game tải trong khoảng thời gian giống trên PC-8801 thật. Khi tắt, bộ điều khiển trả lời gần như ngay lập tức và game tải sớm hơn (tới khoảng 2 giây trong các game đã thử), nhưng không chính xác bằng phần cứng thật. Đây là một phần của máy, nên một movie cần cùng giá trị.",
     "setting.kanji_level2": "ROM kanji cấp 2",
-    "setting.kanji_level2.about": "Máy có ROM kanji cấp 2 (KANJI2.ROM), chứa các kanji ít dùng hơn, hay không. Mặc định bật; không có nó các kanji đó hiện trống. Đây là một phần của máy, nên một movie cần cùng giá trị.",
+    "setting.kanji_level2.about": "Máy có ROM kanji cấp 2 (KANJI2.ROM), chứa các kanji ít dùng hơn, hay không. Mặc định tắt; không có nó các kanji đó hiện trống. Đây là một phần của máy, nên một movie cần cùng giá trị.",
     "setting.lua_memory_events": "Sự kiện bộ nhớ Lua",
     "setting.lua_memory_events.about": "Cho phép script Lua dừng tại bộ nhớ mà một trong hai Z80 chạy, đọc hoặc ghi (event.on_bus_exec, on_bus_read và on_bus_write), theo địa chỉ mà CPU dùng (phạm vi Main CPU hoặc Sub CPU), và thay đổi giá trị được đọc hoặc ghi. Tùy chọn này dùng một bản sao của QUASI88 kiểm tra mọi lệnh và mọi lần truy cập bộ nhớ, chậm hơn một chút, nên mặc định là tắt. Máy chạy như nhau trong cả hai trường hợp, nên movie phát lại như nhau với mọi giá trị. Có hiệu lực khi máy khởi động.",
     "setting.memory_wait": "Chờ bộ nhớ",
