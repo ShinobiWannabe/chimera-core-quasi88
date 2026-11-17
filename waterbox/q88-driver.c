@@ -48,8 +48,6 @@ static int16_t *g_audio;
 static int g_audioPairs;
 static int g_inputRead;
 static uint64_t g_frames;
-/* the main CPU's states of the frames before this one */
-static uint64_t g_states;
 /* the Start Time setting: seconds since 1970 in UTC */
 static long long g_startTime;
 static int g_started;
@@ -81,6 +79,72 @@ static void copy_frame(void)
 	g_height = h;
 	for (i = 0; i < w * h; i++)
 		g_frame[i] = src[i] | 0xff000000u;
+}
+
+/* ------------------------------------------------------------ the beam
+ *
+ * QUASI88 draws the picture once a frame, from the graphics VRAM as it is
+ * when the display starts (intr.c, end of VRTC). A real monitor shows each
+ * line as the VRAM is when its beam passes, so a game that erases and
+ * redraws a sprite while the screen is shown is seen whole on a real machine
+ * wherever the beam was not, and missing from QUASI88's picture whenever
+ * the erase spans the start of the display.
+ *
+ * With Beam-Timed Picture on, g_beamVram holds the picture the beam drew in
+ * the display period that just ended: copied from the VRAM when a display
+ * starts, then each write (patch 0005, chimera_vram_written) is taken into
+ * it only for the lines the beam has not reached yet. quasi88_loop draws
+ * from it (chimera_screen_update_begin/end). Only the picture changes: the
+ * CPUs, the VRAM and the frame boundaries are the same either way.
+ *
+ * The beam's place is the main CPU's states since VSYNC (state_of_cpu plus
+ * the instruction under way): 448 lines a frame, the first 48 in VRTC
+ * (intr.c VRTC_TOP), then 400 shown, a 200-line row on two of them. In the
+ * 400-line mode plane 0 is the upper half and plane 1 the lower. */
+static uint8_t g_beamVram[0x4000][4];
+static int g_beamValid;
+static uint8_t (*g_liveVram)[4];
+static int g_beamTimed = 1;
+
+static long beam_state_of_line(int line)
+{
+	return (long)state_of_vsync * (48 + line) / 448;
+}
+
+void chimera_vram_written(word addr)
+{
+	long s;
+	int row, p;
+	if (!g_beamTimed || !g_beamValid || addr >= 80 * 200) return;
+	s = (long)state_of_cpu + z80main_cpu.state0;
+	if (s < beam_state_of_line(0)) return;	/* VRTC: the next display's, copied when it starts */
+	row = addr / 80;
+	for (p = 0; p < 4; p++) {
+		int line = (grph_ctrl & (GRPH_CTRL_COLOR | GRPH_CTRL_200)) ? 2 * row : (p == 1 ? 200 + row : row);
+		if (s < beam_state_of_line(line)) g_beamVram[addr][p] = main_vram[addr][p];
+	}
+}
+
+void chimera_screen_update_begin(void)
+{
+	g_liveVram = NULL;
+	if (!g_beamTimed || !g_beamValid) return;
+	g_liveVram = main_vram;
+	main_vram = g_beamVram;
+	set_screen_dirty_all();
+}
+
+void chimera_screen_update_end(void)
+{
+	if (g_liveVram) {
+		main_vram = g_liveVram;
+		g_liveVram = NULL;
+		set_screen_dirty_all();	/* the screen holds the beam's picture, not the VRAM's */
+	}
+	if (g_beamTimed && main_vram) {
+		memcpy(g_beamVram, main_vram, sizeof g_beamVram);
+		g_beamValid = 1;
+	}
 }
 
 /* ------------------------------------------------------------ the clock */
@@ -129,7 +193,13 @@ static void arg_long(const char *opt, long v)
 	arg(n);
 }
 
-static int g_kanji2, g_jisho, g_compatRom, g_rhythm;
+static int g_kanji2, g_jisho, g_compatRom, g_rhythm, g_basicN;
+/* N-BASIC taken from N88N.ROM for an 88 KiB PC88.ROM (its lower 24 KiB;
+ * the top 8 KiB are in PC88.ROM already), copied in after quasi88_start */
+static uint8_t g_nbasicLow[0x6000];
+static int g_nbasicFromN88N;
+/* the Boot From setting: what every reset boots from (machine_reset) */
+static int g_bootRom;
 
 static void build_command_line(void)
 {
@@ -154,7 +224,8 @@ static void build_command_line(void)
 	arg("-nosamples");
 
 	setting_str("basicMode", "V2", s, sizeof s);
-	if (!strcmp(s, "N")) arg("-n");
+	g_basicN = !strcmp(s, "N");
+	if (g_basicN) arg("-n");
 	else if (!strcmp(s, "V1S")) arg("-v1s");
 	else if (!strcmp(s, "V1H")) arg("-v1h");
 	else arg("-v2");
@@ -168,7 +239,7 @@ static void build_command_line(void)
 #else
 	arg("-nofmgen");
 #endif
-	setting_str("cpuTiming", "0", s, sizeof s);
+	setting_str("cpuTiming", "2", s, sizeof s);
 	arg_long("-cpu", clamp_long(strtol(s, NULL, 10), 0, 2));
 	arg(wbx_setting_bool("fdcWait", 1) ? "-fdc_wait" : "-fdc_nowait");
 	arg(wbx_setting_bool("memoryWait", 0) ? "-mem_wait" : "-mem_nowait");
@@ -181,11 +252,13 @@ static void build_command_line(void)
 	if (end == s || *end || dip > 0xffff) dip = 0x391a;
 	arg_long("-dipsw", (long)dip);
 	setting_str("bootFrom", "Disk", s, sizeof s);
-	arg(!strcmp(s, "ROM") ? "-romboot" : "-diskboot");
+	g_bootRom = !strcmp(s, "ROM");
+	arg(g_bootRom ? "-romboot" : "-diskboot");
 	arg_long("-extram", clamp_long(wbx_setting_long("extraRam", 0), 0, 16));
 	g_kanji2 = wbx_setting_bool("kanjiLevel2", 0) != 0;
 	g_jisho = wbx_setting_bool("dictionaryRom", 0) != 0;
 	g_rhythm = wbx_setting_bool("rhythmSamples", 0) != 0;
+	g_beamTimed = wbx_setting_bool("beamPicture", 1) != 0;
 	arg(g_jisho ? "-jisho" : "-nojisho");
 	arg_long("-fmvol", clamp_long(wbx_setting_long("volumeFM", 100), 0, 100));
 	arg_long("-psgvol", clamp_long(wbx_setting_long("volumeSSG", 20), 0, 100));
@@ -228,12 +301,15 @@ static int d88_images(const char *name)
 	if (!f) return 0;
 	fseek(f, 0, SEEK_END);
 	size = ftell(f);
-	while (at + 0x2b0 <= size && n < 64) {
+	/* as upstream counts them (fdc.c disk_insert): at most MAX_NR_IMAGE,
+	 * each wholly inside the file; a header's worth at least, so a size
+	 * of zero cannot count one place forever */
+	while (at + 0x20 <= size && n < MAX_NR_IMAGE) {
 		unsigned long len;
 		fseek(f, at, SEEK_SET);
 		if (fread(h, 1, sizeof h, f) != sizeof h) break;
 		len = h[0x1c] | (unsigned long)h[0x1d] << 8 | (unsigned long)h[0x1e] << 16 | (unsigned long)h[0x1f] << 24;
-		if (len < 0x2b0 || at + (long)len > size) break;
+		if (len < 0x20 || at + (long)len > size) break;
 		n++;
 		at += (long)len;
 	}
@@ -291,10 +367,15 @@ static void drive_step(int drv, int delta)
  * that drive is left empty, and its selector stays where it was.
  * quasi88_disk_insert takes the old disk out first, so a disk that fails to
  * go in leaves the drive empty. */
+static int drive_holds_disk(int drv) { return disk_image_exist(drv) && !drive_check_empty(drv); }
+
+/* A disk QUASI88 takes but cannot show (an image number past the file's
+ * last, fdc.c disk_insert) leaves the drive empty: so says the drive. */
 static void drive_insert(int drv, int m)
 {
-	g_inserted[drv] = m >= 0 && quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) ? m : -1;
-	if (m < 0) quasi88_disk_eject(drv);
+	g_inserted[drv] = m >= 0 && quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) &&
+		drive_holds_disk(drv) ? m : -1;
+	if (g_inserted[drv] < 0) quasi88_disk_eject(drv);
 }
 
 static void drive_swap(int drv)
@@ -399,6 +480,44 @@ ECL_EXPORT int Init(void)
 				return 0;
 			}
 	}
+	/* The sizes QUASI88 can use: the firmware declarations take any size
+	 * (Chimera refuses every size but a declared one), so the check is here.
+	 * PC88.ROM is 88 KiB, or 112 KiB with the whole of N-BASIC (memory.c
+	 * load_compat_rom); DISK.ROM is 2 KiB (2D unit) or 8 KiB. */
+	{
+		const char *name = g_compatRom ? "pc88.rom" : "disk.rom";
+		int64_t len = chimera_file_length(name);
+		int ok = g_compatRom ? (len == 0x16000 || len == 0x1c000) : (len == 0x800 || len == 0x2000);
+		if (!ok) {
+			snprintf(g_loadError, sizeof g_loadError, "error.bad_firmware_size\x1f%s\x1f%lld", name, (long long)len);
+			return 0;
+		}
+		/* The N mode needs N-BASIC, which an 88 KiB PC88.ROM lacks: upstream
+		 * would start it from a ROM of FFh, with no word of why. As M88
+		 * does, it is then taken from N88N.ROM, which must be the same
+		 * machine's: its top 8 KiB are the copy PC88.ROM holds at 8000h
+		 * (memory.c load_compat_rom puts that copy at main_rom_n + 6000h). */
+		g_nbasicFromN88N = 0;
+		if (g_compatRom && g_basicN && len != 0x1c000) {
+			int64_t plen, nlen;
+			const uint8_t *pc88 = chimera_file_bytes("pc88.rom", &plen);
+			const uint8_t *n88n = chimera_file_bytes("n88n.rom", &nlen);
+			if (!n88n) {
+				snprintf(g_loadError, sizeof g_loadError, "error.no_nbasic");
+				return 0;
+			}
+			if (nlen != 0x8000) {
+				snprintf(g_loadError, sizeof g_loadError, "error.bad_firmware_size\x1f%s\x1f%lld", "n88n.rom", (long long)nlen);
+				return 0;
+			}
+			if (!pc88 || plen < 0xa000 || memcmp(pc88 + 0x8000, n88n + 0x6000, 0x2000) != 0) {
+				snprintf(g_loadError, sizeof g_loadError, "error.nbasic_mismatch");
+				return 0;
+			}
+			memcpy(g_nbasicLow, n88n, sizeof g_nbasicLow);
+			g_nbasicFromN88N = 1;
+		}
+	}
 	/* a ROM the settings leave out is not read even when it is mounted:
 	 * with the combined ROM, the separate files are not part of the machine */
 	if (g_compatRom) {
@@ -443,9 +562,10 @@ ECL_EXPORT int Init(void)
 		if (config_image.t[CLOAD]) strcpy(config_image.t[CLOAD], g_tapes[g_tapeInserted]);
 	}
 	quasi88_start();
+	if (g_nbasicFromN88N) memcpy(main_rom_n, g_nbasicLow, sizeof g_nbasicLow);
 	/* a disk or tape QUASI88 could not open is not in its drive */
 	for (i = 0; i < 2; i++)
-		if (g_inserted[i] >= 0 && !disk_image_exist(i)) g_inserted[i] = -1;
+		if (g_inserted[i] >= 0 && !drive_holds_disk(i)) g_inserted[i] = -1;
 	if (g_tapeInserted >= 0 && !file_tape[CLOAD][0]) g_tapeInserted = -1;
 	g_started = 1;
 	return 1;
@@ -509,6 +629,11 @@ static void machine_reset(void)
 {
 	T_RESET_CFG cfg;
 	quasi88_get_reset_cfg(&cfg);
+	/* Upstream's quasi88_disk_insert sets boot_from_rom to FALSE whenever a
+	 * disk goes into drive 1 (control.c), so a swap would turn the next
+	 * reset into a disk boot. A PC-8801 boots from what its switch says:
+	 * the Boot From setting. */
+	cfg.boot_from_rom = g_bootRom;
 	quasi88_reset(&cfg);
 }
 
@@ -577,7 +702,6 @@ ECL_EXPORT void FrameAdvance(uint64_t packed)
 	memcpy(g_lit, g_accessed, sizeof g_lit);
 	memset(g_accessed, 0, sizeof g_accessed);
 	if (g_render) copy_frame();
-	g_states += (uint64_t)state_of_vsync;
 	g_frames++;
 }
 
@@ -817,10 +941,15 @@ ECL_EXPORT uint64_t GetAudioDigest(void)
 	return h;
 }
 
-/* The main CPU's states since power-on. */
+/* The main CPU's states since power-on: its VSYNCs so far, each
+ * state_of_vsync states, and the states since the last one. Counted from
+ * upstream's own VSYNC counter (intr.c), not from FrameAdvance: with CPU
+ * Timing 0 a frame can end on the disk unit's time while the main CPU
+ * stands still (pc88sub.c sub_INT_update), and that frame adds nothing. */
 ECL_EXPORT uint64_t GetEmulatedClocks(void)
 {
-	return g_states + (uint64_t)(state_of_cpu + z80main_cpu.state0);
+	return (uint64_t)(unsigned)quasi88_info_vsync_count() * (uint64_t)state_of_vsync +
+	       (uint64_t)(int64_t)(state_of_cpu + z80main_cpu.state0);
 }
 
 ECL_EXPORT uint64_t GetFrameCount(void) { return g_frames; }

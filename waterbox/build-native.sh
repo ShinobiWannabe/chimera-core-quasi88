@@ -46,5 +46,7 @@ Q88_CC="gcc $COMMON $Q88_CFLAGS" Q88_CXX="g++ $COMMON $Q88_CXXFLAGS" Q88_FLAGS_F
 # malloc is calloc here, as fresh guest memory is zero: a read of memory the
 # emulator allocated and never set cannot make the two builds differ
 gcc -O2 -c "$here/port/native-malloc.c" -o "$out/native-malloc.o" || exit 1
-g++ -o "$out/run-native" $objs "$out/native-malloc.o" -Wl,--wrap=malloc -lm || { echo "link failed"; exit 1; }
+# and C++'s new, which --wrap cannot reach (port/native-new.cpp)
+g++ -O2 -c "$here/port/native-new.cpp" -o "$out/native-new.o" || exit 1
+g++ -o "$out/run-native" $objs "$out/native-malloc.o" "$out/native-new.o" -Wl,--wrap=malloc -lm || { echo "link failed"; exit 1; }
 echo "OK: $out/run-native"

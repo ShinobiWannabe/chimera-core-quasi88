@@ -128,11 +128,22 @@ static int vfile_find(const char *name)
 }
 
 int chimera_file_exists(const char *name) { return vfile_find(name) >= 0; }
+int64_t chimera_file_length(const char *name)
+{
+	int i = vfile_find(name);
+	return i < 0 ? -1 : g_files[i].size;
+}
 int chimera_file_count(void) { return g_fileCount; }
 const char *chimera_file_name(int i) { return i >= 0 && i < g_fileCount ? g_files[i].name : NULL; }
 int chimera_file_written(int i) { return i >= 0 && i < g_fileCount && g_files[i].written; }
 int64_t chimera_file_size(int i) { return i >= 0 && i < g_fileCount ? g_files[i].size : 0; }
 const uint8_t *chimera_file_data(int i) { return i >= 0 && i < g_fileCount ? g_files[i].data : NULL; }
+const uint8_t *chimera_file_bytes(const char *name, int64_t *len)
+{
+	int i = vfile_find(name);
+	if (len) *len = i < 0 ? -1 : g_files[i].size;
+	return i < 0 ? NULL : g_files[i].data;
+}
 
 /* ------------------------------------------------------------ settings */
 

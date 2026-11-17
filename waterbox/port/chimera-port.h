@@ -37,6 +37,11 @@ const uint8_t *chimera_file_data(int i);
 /* Reads the whole of a mounted file into the file layer, so a disk the
  * machine writes is written in guest memory; 0 when it is not mounted. */
 int chimera_file_exists(const char *name);
+/* The size of a mounted file, read in as chimera_file_exists does; -1 when
+ * it is not mounted. */
+int64_t chimera_file_length(const char *name);
+/* a mounted file's bytes, read in on first use (NULL when not mounted) */
+const uint8_t *chimera_file_bytes(const char *name, int64_t *len);
 /* A file that is not opened even if it is mounted: a ROM the settings
  * leave out of the machine. */
 void chimera_file_hide(const char *name);

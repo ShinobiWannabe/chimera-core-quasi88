@@ -192,7 +192,8 @@ SETTINGS = [
      "about": "The mode the machine starts in, as the mode switch on the front of a PC-8801 sets it. "
               "V2 is N88-BASIC V2, the mode almost every game is written for and the default. V1H and V1S "
               "are the older N88-BASIC V1 in its fast and standard speeds, and N is N-BASIC, the PC-8001 "
-              "compatible mode a few early games need." + SAME},
+              "compatible mode a few early games need; it needs N-BASIC, which is in a 112 KiB PC88.ROM or in "
+              "N88N.ROM. With an 88 KiB PC88.ROM, the N mode asks for the same machine's N88N.ROM too." + SAME},
     {"name": "cpuClock", "type": "enum", "default": "4MHz", "options": ["4MHz", "8MHz"], "sync": True,
      "display": "CPU Clock",
      "about": "The speed of the main CPU. 4MHz is the PC-8801mkIISR's, and the default; 8MHz is the "
@@ -208,13 +209,14 @@ SETTINGS = [
      "about": "Which code makes the sound of the FM chip. MAME is the YM2203 and YM2608 emulation QUASI88 "
               "takes from MAME, and QUASI88's default; fmgen is cisc's FM sound generator, which many "
               "prefer for the YM2608. The chip's timers are QUASI88's own either way." + SAME},
-    {"name": "cpuTiming", "type": "enum", "default": "0", "options": ["0", "1", "2"], "sync": True,
+    {"name": "cpuTiming", "type": "enum", "default": "2", "options": ["0", "1", "2"], "sync": True,
      "display": "CPU Timing",
-     "about": "How QUASI88 runs the main CPU and the disk unit's CPU together (its -cpu option). 0, the "
-              "default, runs the disk unit's CPU only while the main CPU waits for it, the fastest. 1 runs "
-              "them side by side while they talk to each other, and 2 runs them in turns of 5 microseconds "
-              "all the time, the slowest and the closest to a real machine. A few games need 1 or 2 to "
-              "load." + SAME},
+     "about": "How QUASI88 runs the main CPU and the disk unit's CPU together (its -cpu option). 2, the "
+              "default, runs them in turns of 5 microseconds all the time, as a real PC-8801 does: the "
+              "slowest, and the closest to a real machine. 1 runs them side by side only while they talk "
+              "to each other. 0 runs the disk unit's CPU only while the main CPU waits for it, the "
+              "fastest: the main CPU then stops during disk access, and disk loads take far fewer frames "
+              "than on a real machine. Only 1 and 2 keep real time during disk access." + SAME},
     {"name": "fdcWait", "type": "bool", "default": True, "sync": True, "display": "Disk Access Time",
      "about": "Makes the floppy disk controller take as long as a real one to move the head and wait for the "
               "sector to come round (QUASI88's -fdc_wait). On by default, so games load in about the time "
@@ -222,8 +224,11 @@ SETTINGS = [
               "sooner (up to about 2 seconds in the games tried), but that is not as accurate to real "
               "hardware." + SAME},
     {"name": "memoryWait", "type": "bool", "default": False, "sync": True, "display": "Memory Wait",
-     "about": "Slows the CPU down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). "
-              "Off by default, as in QUASI88." + SAME},
+     "about": "Slows the CPUs down by some of the wait states a real PC-8801's memory adds (QUASI88's "
+              "-mem_wait). QUASI88 calls its own version rough: it leaves out the VRAM and 8 MHz waits and "
+              "guesses the cost of the screen's DMA in the V1S and N modes, which can make a game slower "
+              "than on a real machine. Choplifter in the N mode then misses every other frame of its "
+              "sprites. Off by default, as in QUASI88." + SAME},
     {"name": "monitor", "type": "enum", "default": "24kHz", "options": ["24kHz", "15kHz"], "sync": True,
      "display": "Monitor",
      "about": "Which monitor the machine is told is connected. 24kHz, the default, is the high resolution "
@@ -251,11 +256,12 @@ SETTINGS = [
     {"name": "dictionaryRom", "type": "bool", "default": False, "sync": True, "display": "Dictionary ROM",
      "about": "Whether the machine has the dictionary ROM (N88JISHO.ROM) of the later models, used by "
               "their kana to kanji conversion. Off by default." + SAME},
-    {"name": "startTime", "type": "datetime", "default": 567993600, "sync": True, "display": "Start Time",
+    {"name": "startTime", "type": "datetime", "default": 567993600, "min": -1009843200, "max": 2145916799, "sync": True, "display": "Start Time",
      "about": "The date and time the machine's calendar clock shows when it is switched on, exactly as "
               "written here: the clock holds a local time and has no time zone. The default is "
               "1988-01-01 00:00:00. The clock then runs with the emulated time, not with the time on "
-              "your computer." + SAME},
+              "your computer. It can be from 1938 to 2037, the years the clock's two digits stand for when a "
+              "program sets it." + SAME},
     {"name": "rhythmSamples", "type": "bool", "default": False, "sync": True, "display": "Rhythm Samples",
      "about": "Whether the drums of the YM2608 (Sound Board II) play. They are recordings that no ROM of the PC-8801 holds: with the MAME Sound Generator they come from the YM2608's drum ROM as MAME dumps it (ym2608_adpcm_rom.bin, 8 KiB), with fmgen from the six 2608_*.WAV files PC-88 and PC-98 emulators share. Off by default, as the drums are then silent, which needs no file." + SAME},
     {"name": "luaMemoryEvents", "type": "bool", "default": False, "sync": True, "display": "Lua Memory Events",
@@ -264,6 +270,13 @@ SETTINGS = [
               "read or written. It uses a copy of QUASI88 that checks every instruction and memory access, a "
               "little slower, so it is off by default. The machine runs the same either way, so a movie plays "
               "back the same with any value. Takes effect when the machine starts."},
+    {"name": "beamPicture", "type": "bool", "default": True, "display": "Beam-Timed Picture",
+     "about": "Shows each line of the graphics as it was when a real monitor's beam drew it, not as the whole "
+              "screen was when the display started. On a real PC-8801 a game that erases and redraws a sprite "
+              "while the screen is shown is still seen; without this, QUASI88's picture can miss it, so the "
+              "sprite flickers or vanishes. The picture then shows the display period that just ended. Only "
+              "the picture changes, never what the machine does, so a movie plays back the same either way. "
+              "Takes effect when the machine starts."},
     {"name": "volumeFM", "type": "int", "default": 100, "min": 0, "max": 100, "display": "FM Volume",
      "about": "The FM music of the sound chip, in per cent. The default, 100, is QUASI88's." + SOUND_ONLY},
     {"name": "volumeSSG", "type": "int", "default": 20, "min": 0, "max": 100, "display": "SSG Volume",
@@ -283,16 +296,19 @@ SETTINGS = [
 # ---------------------------------------------------------------- firmware
 #
 # Mounted in the guest under its id, which is the name QUASI88 looks for
-# (pc88/memory.c rom_list). The sizes are the ROMs'.
+# (pc88/memory.c rom_list). The sizes are the ROMs'. Chimera refuses every
+# size but the declared one, so a ROM that comes in two sizes (PC88.ROM 88 or
+# 112 KiB, DISK.ROM 2 or 8 KiB) is declared 0, any size, and the driver's
+# Init checks it (error.bad_firmware_size).
 FIRMWARE = [
-    ("pc88.rom", 90112, "PC88.ROM (combined ROMs)", "The BASIC and disk unit ROMs of one PC-8801mkIISR or later that you own, in the one file M88 and QUASI88 read (PC88.ROM, 88 KiB): N88-BASIC, its four extension banks, the top of N-BASIC and the disk unit's ROM. A dump with the whole of N-BASIC (112 KiB) also runs the N mode.", ["pc88"], {"setting": "romFiles", "is": "PC88.ROM"}),
+    ("pc88.rom", 0, "PC88.ROM (combined ROMs)", "The BASIC and disk unit ROMs of one PC-8801mkIISR or later that you own, in the one file M88 and QUASI88 read (PC88.ROM, 88 KiB): N88-BASIC, its four extension banks, the top of N-BASIC and the disk unit's ROM. A dump with the whole of N-BASIC (112 KiB) also runs the N mode.", ["pc88"], {"setting": "romFiles", "is": "PC88.ROM"}),
     ("n88.rom", 32768, "N88-BASIC ROM", "The main ROM of a PC-8801mkIISR or later that you own: N88-BASIC (32 KiB, N88.ROM).", ["n88.rom", "n88"], SEPARATE),
     ("n88_0.rom", 8192, "N88-BASIC V2 ROM, bank 0", "The first of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_0.ROM or N88EXT0.ROM).", ["n88_0", "n88ext0"], SEPARATE),
     ("n88_1.rom", 8192, "N88-BASIC V2 ROM, bank 1", "The second of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_1.ROM or N88EXT1.ROM).", ["n88_1", "n88ext1"], SEPARATE),
     ("n88_2.rom", 8192, "N88-BASIC V2 ROM, bank 2", "The third of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_2.ROM or N88EXT2.ROM).", ["n88_2", "n88ext2"], SEPARATE),
     ("n88_3.rom", 8192, "N88-BASIC V2 ROM, bank 3", "The fourth of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_3.ROM or N88EXT3.ROM).", ["n88_3", "n88ext3"], SEPARATE),
-    ("n88n.rom", 32768, "N-BASIC ROM", "The N-BASIC ROM of the same machine (32 KiB, N88N.ROM or N80.ROM), for the N mode.", ["n88n", "n80"], SEPARATE),
-    ("disk.rom", 8192, "Disk unit ROM", "The ROM of the floppy disk unit's own CPU (DISK.ROM or N88SUB.ROM, 2 or 8 KiB).", ["disk", "n88sub"], SEPARATE),
+    ("n88n.rom", 32768, "N-BASIC ROM", "The N-BASIC ROM of the same machine (32 KiB, N88N.ROM or N80.ROM), for the N mode. With an 88 KiB PC88.ROM, which lacks N-BASIC, the N mode takes N-BASIC from here, as M88 does; it must be the N-BASIC of the machine the PC88.ROM is from (its last 8 KiB are the copy PC88.ROM holds), or the machine does not start. A 112 KiB PC88.ROM uses its own N-BASIC and leaves this file unread.", ["n88n", "n80"], {"any": [SEPARATE, {"setting": "basicMode", "is": "N"}]}),
+    ("disk.rom", 0, "Disk unit ROM", "The ROM of the floppy disk unit's own CPU (DISK.ROM or N88SUB.ROM, 2 or 8 KiB).", ["disk", "n88sub"], SEPARATE),
     ("kanji1.rom", 131072, "Level 1 kanji ROM", "The level 1 kanji ROM (128 KiB, KANJI1.ROM or N88KNJ1.ROM). The machine's text font is taken from it too.", ["kanji1", "knj1"], None),
     ("kanji2.rom", 131072, "Level 2 kanji ROM", "The level 2 kanji ROM (128 KiB, KANJI2.ROM or N88KNJ2.ROM).", ["kanji2", "knj2"], {"setting": "kanjiLevel2", "is": True}),
     ("n88jisho.rom", 524288, "Dictionary ROM", "The dictionary ROM of the later models (512 KiB, N88JISHO.ROM or JISYO.ROM).", ["jisho", "jisyo"], {"setting": "dictionaryRom", "is": True}),
@@ -320,6 +336,9 @@ CODE_TEXTS = {
     "error.no_room_for_buffers": "There is no room in the core's memory for the picture or the sound.",
     "error.start_failed": "QUASI88 could not start the machine. Check that the firmware is there.",
     "error.no_firmware": "The firmware file %1 is missing.",
+    "error.bad_firmware_size": "The firmware file %1 is %2 bytes, a size this core cannot use. PC88.ROM must be 90112 or 114688 bytes, DISK.ROM 2048 or 8192.",
+    "error.no_nbasic": "BASIC Mode N needs N-BASIC: a 112 KiB PC88.ROM, or N88N.ROM beside an 88 KiB one. This PC88.ROM is 88 KiB and there is no N88N.ROM.",
+    "error.nbasic_mismatch": "N88N.ROM is not the N-BASIC of the machine this PC88.ROM is from: its last 8 KiB differ from the copy PC88.ROM holds. Pick the N88N.ROM that came with this PC88.ROM, or use a 112 KiB PC88.ROM.",
 }
 
 # ------------------------------------------------------------------ write
@@ -394,7 +413,7 @@ def main():
         "romFile": "rom",
         "deterministic": True,
         "runsOn": ["windows-x86_64", "linux-x86_64", "macos-x86_64"],
-        "memoryLayoutMiB": [64, 16, 16, 16, 128],
+        "memoryLayoutMiB": [64, 16, 16, 16, 256],
         "video": {
             "_comment": "QUASI88 draws the 640x400 screen; 200-line modes are drawn line doubled. "
                         "One frame is one VSYNC, at QUASI88's 55.4 Hz.",

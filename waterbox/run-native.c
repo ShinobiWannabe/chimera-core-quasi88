@@ -17,6 +17,7 @@
  *                      16-bit stereo .wav
  *   Q88_TRACE=file[,from]  the trace logger's lines, as trace-script.h describes
  *   out.ppm  the last frame's picture
+ *   Q88_DUMP_FROM=n  also write each frame from n on as frame-NNNNNN.ppm
  *   mem.bin  the main memory domain after the last frame
  */
 #include <stdint.h>
@@ -59,7 +60,7 @@ static void write_ppm(const char *path)
 
 int main(int argc, char **argv)
 {
-	long frames, i, stall;
+	long frames, i, stall, dumpFrom;
 	FILE *wav = NULL;
 	uint64_t samples = 0;
 
@@ -69,6 +70,7 @@ int main(int argc, char **argv)
 	}
 	if (chdir(argv[1]) != 0) { perror(argv[1]); return 2; }
 	frames = strtol(argv[2], NULL, 0);
+	dumpFrom = getenv("Q88_DUMP_FROM") ? strtol(getenv("Q88_DUMP_FROM"), NULL, 0) : -1;
 	stall = getenv("Q88_STALL_FRAME") ? strtol(getenv("Q88_STALL_FRAME"), NULL, 0) : -1;
 
 	if (!press_load()) return 2;
@@ -105,6 +107,11 @@ int main(int argc, char **argv)
 		       GetVideoWidth(), GetVideoHeight(), GetAudioSampleCount(),
 		       (unsigned long long)GetAudioDigest(),
 		       (unsigned long long)GetEmulatedClocks(), InputWasRead(), lights);
+		if (dumpFrom >= 0 && i >= dumpFrom) {
+			char path[64];
+			snprintf(path, sizeof path, "frame-%06ld.ppm", i);
+			write_ppm(path);
+		}
 	}
 	if (wav) {	/* the two sizes the header left open */
 		uint32_t n = (uint32_t)(samples * 4), r = n + 36;
