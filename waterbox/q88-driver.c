@@ -48,8 +48,6 @@ static int16_t *g_audio;
 static int g_audioPairs;
 static int g_inputRead;
 static uint64_t g_frames;
-/* the main CPU's states of the frames before this one */
-static uint64_t g_states;
 /* the Start Time setting: seconds since 1970 in UTC */
 static long long g_startTime;
 static int g_started;
@@ -129,7 +127,9 @@ static void arg_long(const char *opt, long v)
 	arg(n);
 }
 
-static int g_kanji2, g_jisho, g_compatRom, g_rhythm;
+static int g_kanji2, g_jisho, g_compatRom, g_rhythm, g_basicN;
+/* the Boot From setting: what every reset boots from (machine_reset) */
+static int g_bootRom;
 
 static void build_command_line(void)
 {
@@ -154,7 +154,8 @@ static void build_command_line(void)
 	arg("-nosamples");
 
 	setting_str("basicMode", "V2", s, sizeof s);
-	if (!strcmp(s, "N")) arg("-n");
+	g_basicN = !strcmp(s, "N");
+	if (g_basicN) arg("-n");
 	else if (!strcmp(s, "V1S")) arg("-v1s");
 	else if (!strcmp(s, "V1H")) arg("-v1h");
 	else arg("-v2");
@@ -181,7 +182,8 @@ static void build_command_line(void)
 	if (end == s || *end || dip > 0xffff) dip = 0x391a;
 	arg_long("-dipsw", (long)dip);
 	setting_str("bootFrom", "Disk", s, sizeof s);
-	arg(!strcmp(s, "ROM") ? "-romboot" : "-diskboot");
+	g_bootRom = !strcmp(s, "ROM");
+	arg(g_bootRom ? "-romboot" : "-diskboot");
 	arg_long("-extram", clamp_long(wbx_setting_long("extraRam", 0), 0, 16));
 	g_kanji2 = wbx_setting_bool("kanjiLevel2", 0) != 0;
 	g_jisho = wbx_setting_bool("dictionaryRom", 0) != 0;
@@ -228,12 +230,15 @@ static int d88_images(const char *name)
 	if (!f) return 0;
 	fseek(f, 0, SEEK_END);
 	size = ftell(f);
-	while (at + 0x2b0 <= size && n < 64) {
+	/* as upstream counts them (fdc.c disk_insert): at most MAX_NR_IMAGE,
+	 * each wholly inside the file; a header's worth at least, so a size
+	 * of zero cannot count one place forever */
+	while (at + 0x20 <= size && n < MAX_NR_IMAGE) {
 		unsigned long len;
 		fseek(f, at, SEEK_SET);
 		if (fread(h, 1, sizeof h, f) != sizeof h) break;
 		len = h[0x1c] | (unsigned long)h[0x1d] << 8 | (unsigned long)h[0x1e] << 16 | (unsigned long)h[0x1f] << 24;
-		if (len < 0x2b0 || at + (long)len > size) break;
+		if (len < 0x20 || at + (long)len > size) break;
 		n++;
 		at += (long)len;
 	}
@@ -291,10 +296,15 @@ static void drive_step(int drv, int delta)
  * that drive is left empty, and its selector stays where it was.
  * quasi88_disk_insert takes the old disk out first, so a disk that fails to
  * go in leaves the drive empty. */
+static int drive_holds_disk(int drv) { return disk_image_exist(drv) && !drive_check_empty(drv); }
+
+/* A disk QUASI88 takes but cannot show (an image number past the file's
+ * last, fdc.c disk_insert) leaves the drive empty: so says the drive. */
 static void drive_insert(int drv, int m)
 {
-	g_inserted[drv] = m >= 0 && quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) ? m : -1;
-	if (m < 0) quasi88_disk_eject(drv);
+	g_inserted[drv] = m >= 0 && quasi88_disk_insert(drv, g_media[m].file, g_media[m].image, FALSE) &&
+		drive_holds_disk(drv) ? m : -1;
+	if (g_inserted[drv] < 0) quasi88_disk_eject(drv);
 }
 
 static void drive_swap(int drv)
@@ -399,6 +409,25 @@ ECL_EXPORT int Init(void)
 				return 0;
 			}
 	}
+	/* The sizes QUASI88 can use: the firmware declarations take any size
+	 * (Chimera refuses every size but a declared one), so the check is here.
+	 * PC88.ROM is 88 KiB, or 112 KiB with the whole of N-BASIC (memory.c
+	 * load_compat_rom); DISK.ROM is 2 KiB (2D unit) or 8 KiB. */
+	{
+		const char *name = g_compatRom ? "pc88.rom" : "disk.rom";
+		int64_t len = chimera_file_length(name);
+		int ok = g_compatRom ? (len == 0x16000 || len == 0x1c000) : (len == 0x800 || len == 0x2000);
+		if (!ok) {
+			snprintf(g_loadError, sizeof g_loadError, "error.bad_firmware_size\x1f%s\x1f%lld", name, (long long)len);
+			return 0;
+		}
+		/* the N mode needs N-BASIC, which an 88 KiB PC88.ROM lacks: upstream
+		 * would start it from a ROM of FFh, with no word of why */
+		if (g_compatRom && g_basicN && len != 0x1c000) {
+			snprintf(g_loadError, sizeof g_loadError, "error.no_nbasic");
+			return 0;
+		}
+	}
 	/* a ROM the settings leave out is not read even when it is mounted:
 	 * with the combined ROM, the separate files are not part of the machine */
 	if (g_compatRom) {
@@ -445,7 +474,7 @@ ECL_EXPORT int Init(void)
 	quasi88_start();
 	/* a disk or tape QUASI88 could not open is not in its drive */
 	for (i = 0; i < 2; i++)
-		if (g_inserted[i] >= 0 && !disk_image_exist(i)) g_inserted[i] = -1;
+		if (g_inserted[i] >= 0 && !drive_holds_disk(i)) g_inserted[i] = -1;
 	if (g_tapeInserted >= 0 && !file_tape[CLOAD][0]) g_tapeInserted = -1;
 	g_started = 1;
 	return 1;
@@ -509,6 +538,11 @@ static void machine_reset(void)
 {
 	T_RESET_CFG cfg;
 	quasi88_get_reset_cfg(&cfg);
+	/* Upstream's quasi88_disk_insert sets boot_from_rom to FALSE whenever a
+	 * disk goes into drive 1 (control.c), so a swap would turn the next
+	 * reset into a disk boot. A PC-8801 boots from what its switch says:
+	 * the Boot From setting. */
+	cfg.boot_from_rom = g_bootRom;
 	quasi88_reset(&cfg);
 }
 
@@ -577,7 +611,6 @@ ECL_EXPORT void FrameAdvance(uint64_t packed)
 	memcpy(g_lit, g_accessed, sizeof g_lit);
 	memset(g_accessed, 0, sizeof g_accessed);
 	if (g_render) copy_frame();
-	g_states += (uint64_t)state_of_vsync;
 	g_frames++;
 }
 
@@ -817,10 +850,15 @@ ECL_EXPORT uint64_t GetAudioDigest(void)
 	return h;
 }
 
-/* The main CPU's states since power-on. */
+/* The main CPU's states since power-on: its VSYNCs so far, each
+ * state_of_vsync states, and the states since the last one. Counted from
+ * upstream's own VSYNC counter (intr.c), not from FrameAdvance: with CPU
+ * Timing 0 a frame can end on the disk unit's time while the main CPU
+ * stands still (pc88sub.c sub_INT_update), and that frame adds nothing. */
 ECL_EXPORT uint64_t GetEmulatedClocks(void)
 {
-	return g_states + (uint64_t)(state_of_cpu + z80main_cpu.state0);
+	return (uint64_t)(unsigned)quasi88_info_vsync_count() * (uint64_t)state_of_vsync +
+	       (uint64_t)(int64_t)(state_of_cpu + z80main_cpu.state0);
 }
 
 ECL_EXPORT uint64_t GetFrameCount(void) { return g_frames; }

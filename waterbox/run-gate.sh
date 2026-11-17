@@ -78,6 +78,52 @@ game() {	# file -> path, or empty
 	[ -n "$games" ] && [ -f "$games/$1" ] && echo "$games/$1"
 }
 
+# ---- firmware: the sizes Init takes and refuses ----
+# PC88.ROM comes as 88 KiB, or 112 KiB with the whole of N-BASIC; the
+# declarations take any size, so the driver's Init is what checks.
+fwsize() {	# name settings-json -> the Init line of run-native, or "ok"
+	printf '%s' "$2" > "$work/fw/settings"
+	if $native "$work/fw" 1 > /dev/null 2> "$work/fw.err"; then echo ok; else grep -o 'error\.[a-z_]*' "$work/fw.err" | head -1; fi
+}
+mkdir -p "$work/fw"; rm -f "$work/fw"/*
+cp "$kanji1" "$work/fw/kanji1.rom"; printf '{}' > "$work/fw/slots"
+len=$(wc -c < "$pc88")
+if [ "$len" -eq 90112 ] || [ "$len" -eq 114688 ]; then
+	head -c 90112 "$pc88" > "$work/fw/pc88.rom"
+	r1=$(fwsize pc88.rom '{"bootFrom":"ROM"}'); r2=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
+	head -c 80000 "$pc88" > "$work/fw/pc88.rom"
+	r3=$(fwsize pc88.rom '{"bootFrom":"ROM"}')
+	{ head -c 90112 "$pc88"; head -c 24576 /dev/zero | tr '\000' '\377'; } > "$work/fw/pc88.rom"
+	[ "$len" -eq 114688 ] && cp "$pc88" "$work/fw/pc88.rom"
+	r4=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
+	if [ "$r1" = ok ] && [ "$r2" = error.no_nbasic ] && [ "$r3" = error.bad_firmware_size ] && [ "$r4" = ok ]; then
+		ok "firmware: 88 KiB PC88.ROM starts, refuses N mode; 112 KiB starts N mode; 80000 bytes is refused"
+	else bad "firmware sizes: 88K=$r1, 88K N=$r2, 80000=$r3, 112K N=$r4"; fi
+else
+	skp "firmware sizes: PC88.ROM is $len bytes, neither 90112 nor 114688"
+fi
+
+# ---- drives: Boot From = ROM survives a swap into drive 1 and Reset ----
+# Two disks, the machine started in BASIC. A Reset alone and a Reset after
+# swapping the other disk into drive 1 must both start BASIC again: the same
+# picture from then on. Upstream turns a drive 1 insert into a disk boot
+# (control.c), which the driver undoes (machine_reset).
+g1=$(game Master_of_Monsters.D88); g2=$(game DIGDUG_SR.D88)
+if [ -n "$g1" ] && [ -n "$g2" ]; then
+	setup t "$g1" '{"bootFrom":"ROM"}'
+	cp "$g2" "$work/t/"
+	printf '{"floppy": ["%s", "%s"]}' "$(basename "$g1")" "$(basename "$g2")" > "$work/t/slots"
+	Q88_PRESS="400:Reset:2" $native "$work/t" 900 > "$work/a.log" 2>/dev/null
+	Q88_PRESS="300:Drive 1 Next Floppy Disk:2,320:Drive 1 Swap Floppy Disk:2,400:Reset:2" $native "$work/t" 900 > "$work/b.log" 2>/dev/null
+	Q88_PRESS="300:Drive 1 Next Floppy Disk:2,320:Drive 1 Swap Floppy Disk:2,400:Reset:2" $wbx "$work/t" 900 2>/dev/null | grep '^[0-9]' > "$work/w.log"
+	if [ "$(awk '$1 >= 700 {print $2}' "$work/a.log")" = "$(awk '$1 >= 700 {print $2}' "$work/b.log")" ] && \
+	   [ -n "$(awk '$1 >= 700' "$work/a.log")" ] && cmp -s "$work/b.log" "$work/w.log"; then
+		ok "drives: after a drive 1 swap, Reset still boots from ROM (picture as a plain Reset); native = sandbox"
+	else bad "drives: a drive 1 swap then Reset did not boot as Boot From = ROM says, or native and sandbox differ"; fi
+else
+	skp "drives: Master_of_Monsters.D88 and DIGDUG_SR.D88 not both in Q88_GAMES"
+fi
+
 # ---- native against the sandbox ----
 for spec in "Xevious.d88|1500|{\"basicMode\":\"V1S\"}" "Master_of_Monsters.D88|1800|{}" "DIGDUG_SR.D88|1200|{}" \
             "Master_of_Monsters.D88|1800|{\"soundBoard\":\"Sound Board II\",\"soundGenerator\":\"fmgen\"}"; do
