@@ -223,10 +223,12 @@ SETTINGS = [
               "they take on a real PC-8801. Off, the controller answers almost at once and games load "
               "sooner (up to about 2 seconds in the games tried), but that is not as accurate to real "
               "hardware." + SAME},
-    {"name": "memoryWait", "type": "bool", "default": True, "sync": True, "display": "Memory Wait",
-     "about": "Slows the CPUs down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). "
-              "On by default, as every wait it adds is one a real machine has, though QUASI88 leaves out "
-              "some of them (the VRAM and 8 MHz waits). QUASI88's own default is off." + SAME},
+    {"name": "memoryWait", "type": "bool", "default": False, "sync": True, "display": "Memory Wait",
+     "about": "Slows the CPUs down by some of the wait states a real PC-8801's memory adds (QUASI88's "
+              "-mem_wait). QUASI88 calls its own version rough: it leaves out the VRAM and 8 MHz waits and "
+              "guesses the cost of the screen's DMA in the V1S and N modes, which can make a game slower "
+              "than on a real machine. Choplifter in the N mode then misses every other frame of its "
+              "sprites. Off by default, as in QUASI88." + SAME},
     {"name": "monitor", "type": "enum", "default": "24kHz", "options": ["24kHz", "15kHz"], "sync": True,
      "display": "Monitor",
      "about": "Which monitor the machine is told is connected. 24kHz, the default, is the high resolution "
