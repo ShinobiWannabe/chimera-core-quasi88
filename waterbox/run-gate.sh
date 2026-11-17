@@ -234,6 +234,26 @@ else
 	skp "trace: Xevious.d88 not in Q88_GAMES"
 fi
 
+# ---- picture: Beam-Timed Picture changes the picture only ----
+# Xevious in V1S with Memory Wait, played: with the setting on and off the
+# sound, clock, lights, input reads and main RAM must be the same, and the
+# picture must differ somewhere (else the setting did nothing).
+g=$(game Xevious.d88)
+if [ -n "$g" ]; then
+	px="900:Key SPACE:10,1300:P1 Joystick Up:60,1360:P1 Joystick Left:30"
+	setup t "$g" '{"basicMode":"V1S","memoryWait":true}'
+	Q88_PRESS="$px" $native "$work/t" 1600 /dev/null "$work/a.mem" > "$work/a.log" 2>/dev/null
+	setup t "$g" '{"basicMode":"V1S","memoryWait":true,"beamPicture":false}'
+	Q88_PRESS="$px" $native "$work/t" 1600 /dev/null "$work/b.mem" > "$work/b.log" 2>/dev/null
+	if [ "$(wc -l < "$work/a.log")" -eq 1600 ] && \
+	   [ "$(cut -d' ' -f1,3- "$work/a.log")" = "$(cut -d' ' -f1,3- "$work/b.log")" ] && cmp -s "$work/a.mem" "$work/b.mem" && \
+	   [ "$(cut -d' ' -f2 "$work/a.log")" != "$(cut -d' ' -f2 "$work/b.log")" ]; then
+		ok "picture: Beam-Timed Picture on and off run the same machine (sound, clock, lights, RAM) and draw a different picture"
+	else bad "picture: Beam-Timed Picture changed the machine, or changed nothing"; fi
+else
+	skp "picture: Xevious.d88 not in Q88_GAMES"
+fi
+
 # ---- time: the host stalling does not move the machine ----
 path=$(game Master_of_Monsters.D88)
 if [ -n "$path" ]; then

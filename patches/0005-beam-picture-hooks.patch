@@ -1,0 +1,61 @@
+--- a/src/pc88/pc88main.c
++++ b/src/pc88/pc88main.c
+@@ -657,6 +657,10 @@
+ /*------------------------------
+  * 通常のVRAMリード
+  *------------------------------*/
++#ifdef CHIMERA_CORE
++void chimera_vram_written(word addr);
++#endif
++
+ INLINE byte vram_read(word addr)
+ {
+ 	return main_vram[addr][ memory_bank ];
+@@ -670,6 +674,9 @@
+ 	set_screen_dirty_flag(addr);
+ 
+ 	main_vram[addr][ memory_bank ] = data;
++#ifdef CHIMERA_CORE
++	chimera_vram_written(addr);	/* the picture the beam shows (Chimera) */
++#endif
+ }
+ 
+ /*------------------------------
+@@ -754,6 +761,9 @@
+ 		break;
+ 
+ 	}
++#ifdef CHIMERA_CORE
++	chimera_vram_written(addr);	/* the picture the beam shows (Chimera) */
++#endif
+ }
+ 
+ 
+--- a/src/quasi88.c
++++ b/src/quasi88.c
+@@ -299,6 +299,11 @@
+ static int mode         = EXEC;				/* 現在のモード */
+ static int next_mode    = EXEC;				/* モード切替要求時の、次モード */
+ 
++#ifdef CHIMERA_CORE
++void chimera_screen_update_begin(void);
++void chimera_screen_update_end(void);
++#endif
++
+ int quasi88_loop(void)
+ {
+ 	static int init_done = FALSE;
+@@ -438,7 +443,13 @@
+ 	if (quasi88_event_flags & EVENT_FRAME_UPDATE) {
+ 		quasi88_event_flags &= ~EVENT_FRAME_UPDATE;
+ 		statusbar_update();
++#ifdef CHIMERA_CORE
++		chimera_screen_update_begin();	/* draw the picture the beam showed (Chimera) */
++#endif
+ 		screen_update();
++#ifdef CHIMERA_CORE
++		chimera_screen_update_end();
++#endif
+ 		do_wait = TRUE;
+ 	} else {
+ 		profiler_lapse(PROF_LAPSE_SKIP);

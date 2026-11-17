@@ -270,6 +270,13 @@ SETTINGS = [
               "read or written. It uses a copy of QUASI88 that checks every instruction and memory access, a "
               "little slower, so it is off by default. The machine runs the same either way, so a movie plays "
               "back the same with any value. Takes effect when the machine starts."},
+    {"name": "beamPicture", "type": "bool", "default": True, "display": "Beam-Timed Picture",
+     "about": "Shows each line of the graphics as it was when a real monitor's beam drew it, not as the whole "
+              "screen was when the display started. On a real PC-8801 a game that erases and redraws a sprite "
+              "while the screen is shown is still seen; without this, QUASI88's picture can miss it, so the "
+              "sprite flickers or vanishes. The picture then shows the display period that just ended. Only "
+              "the picture changes, never what the machine does, so a movie plays back the same either way. "
+              "Takes effect when the machine starts."},
     {"name": "volumeFM", "type": "int", "default": 100, "min": 0, "max": 100, "display": "FM Volume",
      "about": "The FM music of the sound chip, in per cent. The default, 100, is QUASI88's." + SOUND_ONLY},
     {"name": "volumeSSG", "type": "int", "default": 20, "min": 0, "max": 100, "display": "SSG Volume",

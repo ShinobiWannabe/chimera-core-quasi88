@@ -81,6 +81,72 @@ static void copy_frame(void)
 		g_frame[i] = src[i] | 0xff000000u;
 }
 
+/* ------------------------------------------------------------ the beam
+ *
+ * QUASI88 draws the picture once a frame, from the graphics VRAM as it is
+ * when the display starts (intr.c, end of VRTC). A real monitor shows each
+ * line as the VRAM is when its beam passes, so a game that erases and
+ * redraws a sprite while the screen is shown is seen whole on a real machine
+ * wherever the beam was not, and missing from QUASI88's picture whenever
+ * the erase spans the start of the display.
+ *
+ * With Beam-Timed Picture on, g_beamVram holds the picture the beam drew in
+ * the display period that just ended: copied from the VRAM when a display
+ * starts, then each write (patch 0005, chimera_vram_written) is taken into
+ * it only for the lines the beam has not reached yet. quasi88_loop draws
+ * from it (chimera_screen_update_begin/end). Only the picture changes: the
+ * CPUs, the VRAM and the frame boundaries are the same either way.
+ *
+ * The beam's place is the main CPU's states since VSYNC (state_of_cpu plus
+ * the instruction under way): 448 lines a frame, the first 48 in VRTC
+ * (intr.c VRTC_TOP), then 400 shown, a 200-line row on two of them. In the
+ * 400-line mode plane 0 is the upper half and plane 1 the lower. */
+static uint8_t g_beamVram[0x4000][4];
+static int g_beamValid;
+static uint8_t (*g_liveVram)[4];
+static int g_beamTimed = 1;
+
+static long beam_state_of_line(int line)
+{
+	return (long)state_of_vsync * (48 + line) / 448;
+}
+
+void chimera_vram_written(word addr)
+{
+	long s;
+	int row, p;
+	if (!g_beamTimed || !g_beamValid || addr >= 80 * 200) return;
+	s = (long)state_of_cpu + z80main_cpu.state0;
+	if (s < beam_state_of_line(0)) return;	/* VRTC: the next display's, copied when it starts */
+	row = addr / 80;
+	for (p = 0; p < 4; p++) {
+		int line = (grph_ctrl & (GRPH_CTRL_COLOR | GRPH_CTRL_200)) ? 2 * row : (p == 1 ? 200 + row : row);
+		if (s < beam_state_of_line(line)) g_beamVram[addr][p] = main_vram[addr][p];
+	}
+}
+
+void chimera_screen_update_begin(void)
+{
+	g_liveVram = NULL;
+	if (!g_beamTimed || !g_beamValid) return;
+	g_liveVram = main_vram;
+	main_vram = g_beamVram;
+	set_screen_dirty_all();
+}
+
+void chimera_screen_update_end(void)
+{
+	if (g_liveVram) {
+		main_vram = g_liveVram;
+		g_liveVram = NULL;
+		set_screen_dirty_all();	/* the screen holds the beam's picture, not the VRAM's */
+	}
+	if (g_beamTimed && main_vram) {
+		memcpy(g_beamVram, main_vram, sizeof g_beamVram);
+		g_beamValid = 1;
+	}
+}
+
 /* ------------------------------------------------------------ the clock */
 
 /* The calendar clock's time (port/clock.c): the Start Time and the emulated
@@ -192,6 +258,7 @@ static void build_command_line(void)
 	g_kanji2 = wbx_setting_bool("kanjiLevel2", 0) != 0;
 	g_jisho = wbx_setting_bool("dictionaryRom", 0) != 0;
 	g_rhythm = wbx_setting_bool("rhythmSamples", 0) != 0;
+	g_beamTimed = wbx_setting_bool("beamPicture", 1) != 0;
 	arg(g_jisho ? "-jisho" : "-nojisho");
 	arg_long("-fmvol", clamp_long(wbx_setting_long("volumeFM", 100), 0, 100));
 	arg_long("-psgvol", clamp_long(wbx_setting_long("volumeSSG", 20), 0, 100));

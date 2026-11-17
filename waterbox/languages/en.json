@@ -44,6 +44,8 @@
     "firmware.ym2608_adpcm_rom_bin.about": "The drum ROM inside the YM2608 sound chip, as MAME dumps it (8 KiB, in MAME's ym2608.zip). Used for the drums of Sound Board II when the Sound Generator is MAME.",
     "setting.basic_mode": "BASIC Mode",
     "setting.basic_mode.about": "The mode the machine starts in, as the mode switch on the front of a PC-8801 sets it. V2 is N88-BASIC V2, the mode almost every game is written for and the default. V1H and V1S are the older N88-BASIC V1 in its fast and standard speeds, and N is N-BASIC, the PC-8001 compatible mode a few early games need; it needs N-BASIC, which is in a 112 KiB PC88.ROM or in N88N.ROM. With an 88 KiB PC88.ROM, the N mode asks for the same machine's N88N.ROM too. It is part of the machine, so a movie needs the same value.",
+    "setting.beam_picture": "Beam-Timed Picture",
+    "setting.beam_picture.about": "Shows each line of the graphics as it was when a real monitor's beam drew it, not as the whole screen was when the display started. On a real PC-8801 a game that erases and redraws a sprite while the screen is shown is still seen; without this, QUASI88's picture can miss it, so the sprite flickers or vanishes. The picture then shows the display period that just ended. Only the picture changes, never what the machine does, so a movie plays back the same either way. Takes effect when the machine starts.",
     "setting.boot_from": "Boot From",
     "setting.boot_from.about": "Whether the machine starts from the floppy disk in drive 1 (the default) or straight into BASIC in ROM. It is part of the machine, so a movie needs the same value.",
     "setting.cpu_clock": "CPU Clock",
