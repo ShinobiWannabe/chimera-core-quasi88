@@ -169,10 +169,10 @@ static void build_command_line(void)
 #else
 	arg("-nofmgen");
 #endif
-	setting_str("cpuTiming", "0", s, sizeof s);
+	setting_str("cpuTiming", "2", s, sizeof s);
 	arg_long("-cpu", clamp_long(strtol(s, NULL, 10), 0, 2));
 	arg(wbx_setting_bool("fdcWait", 1) ? "-fdc_wait" : "-fdc_nowait");
-	arg(wbx_setting_bool("memoryWait", 0) ? "-mem_wait" : "-mem_nowait");
+	arg(wbx_setting_bool("memoryWait", 1) ? "-mem_wait" : "-mem_nowait");
 	setting_str("monitor", "24kHz", s, sizeof s);
 	arg(!strcmp(s, "15kHz") ? "-15k" : "-24k");
 	setting_str("port", "Joystick", s, sizeof s);

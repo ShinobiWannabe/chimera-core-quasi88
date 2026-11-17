@@ -209,23 +209,24 @@ SETTINGS = [
      "about": "Which code makes the sound of the FM chip. MAME is the YM2203 and YM2608 emulation QUASI88 "
               "takes from MAME, and QUASI88's default; fmgen is cisc's FM sound generator, which many "
               "prefer for the YM2608. The chip's timers are QUASI88's own either way." + SAME},
-    {"name": "cpuTiming", "type": "enum", "default": "0", "options": ["0", "1", "2"], "sync": True,
+    {"name": "cpuTiming", "type": "enum", "default": "2", "options": ["0", "1", "2"], "sync": True,
      "display": "CPU Timing",
-     "about": "How QUASI88 runs the main CPU and the disk unit's CPU together (its -cpu option). 0, the "
-              "default, runs the disk unit's CPU only while the main CPU waits for it, the fastest. 1 runs "
-              "them side by side while they talk to each other, and 2 runs them in turns of 5 microseconds "
-              "all the time, the slowest and the closest to a real machine. A few games need 1 or 2 to "
-              "load. Only 1 and 2 keep the main CPU running while the disk unit works, so only they keep "
-              "real time during disk access." + SAME},
+     "about": "How QUASI88 runs the main CPU and the disk unit's CPU together (its -cpu option). 2, the "
+              "default, runs them in turns of 5 microseconds all the time, as a real PC-8801 does: the "
+              "slowest, and the closest to a real machine. 1 runs them side by side only while they talk "
+              "to each other. 0 runs the disk unit's CPU only while the main CPU waits for it, the "
+              "fastest: the main CPU then stops during disk access, and disk loads take far fewer frames "
+              "than on a real machine. Only 1 and 2 keep real time during disk access." + SAME},
     {"name": "fdcWait", "type": "bool", "default": True, "sync": True, "display": "Disk Access Time",
      "about": "Makes the floppy disk controller take as long as a real one to move the head and wait for the "
               "sector to come round (QUASI88's -fdc_wait). On by default, so games load in about the time "
               "they take on a real PC-8801. Off, the controller answers almost at once and games load "
               "sooner (up to about 2 seconds in the games tried), but that is not as accurate to real "
               "hardware." + SAME},
-    {"name": "memoryWait", "type": "bool", "default": False, "sync": True, "display": "Memory Wait",
-     "about": "Slows the CPU down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). "
-              "Off by default, as in QUASI88." + SAME},
+    {"name": "memoryWait", "type": "bool", "default": True, "sync": True, "display": "Memory Wait",
+     "about": "Slows the CPUs down by the wait states a real PC-8801's memory adds (QUASI88's -mem_wait). "
+              "On by default, as every wait it adds is one a real machine has, though QUASI88 leaves out "
+              "some of them (the VRAM and 8 MHz waits). QUASI88's own default is off." + SAME},
     {"name": "monitor", "type": "enum", "default": "24kHz", "options": ["24kHz", "15kHz"], "sync": True,
      "display": "Monitor",
      "about": "Which monitor the machine is told is connected. 24kHz, the default, is the high resolution "
