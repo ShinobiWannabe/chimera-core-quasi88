@@ -128,6 +128,10 @@ static void arg_long(const char *opt, long v)
 }
 
 static int g_kanji2, g_jisho, g_compatRom, g_rhythm, g_basicN;
+/* N-BASIC taken from N88N.ROM for an 88 KiB PC88.ROM (its lower 24 KiB;
+ * the top 8 KiB are in PC88.ROM already), copied in after quasi88_start */
+static uint8_t g_nbasicLow[0x6000];
+static int g_nbasicFromN88N;
 /* the Boot From setting: what every reset boots from (machine_reset) */
 static int g_bootRom;
 
@@ -421,11 +425,30 @@ ECL_EXPORT int Init(void)
 			snprintf(g_loadError, sizeof g_loadError, "error.bad_firmware_size\x1f%s\x1f%lld", name, (long long)len);
 			return 0;
 		}
-		/* the N mode needs N-BASIC, which an 88 KiB PC88.ROM lacks: upstream
-		 * would start it from a ROM of FFh, with no word of why */
+		/* The N mode needs N-BASIC, which an 88 KiB PC88.ROM lacks: upstream
+		 * would start it from a ROM of FFh, with no word of why. As M88
+		 * does, it is then taken from N88N.ROM, which must be the same
+		 * machine's: its top 8 KiB are the copy PC88.ROM holds at 8000h
+		 * (memory.c load_compat_rom puts that copy at main_rom_n + 6000h). */
+		g_nbasicFromN88N = 0;
 		if (g_compatRom && g_basicN && len != 0x1c000) {
-			snprintf(g_loadError, sizeof g_loadError, "error.no_nbasic");
-			return 0;
+			int64_t plen, nlen;
+			const uint8_t *pc88 = chimera_file_bytes("pc88.rom", &plen);
+			const uint8_t *n88n = chimera_file_bytes("n88n.rom", &nlen);
+			if (!n88n) {
+				snprintf(g_loadError, sizeof g_loadError, "error.no_nbasic");
+				return 0;
+			}
+			if (nlen != 0x8000) {
+				snprintf(g_loadError, sizeof g_loadError, "error.bad_firmware_size\x1f%s\x1f%lld", "n88n.rom", (long long)nlen);
+				return 0;
+			}
+			if (!pc88 || plen < 0xa000 || memcmp(pc88 + 0x8000, n88n + 0x6000, 0x2000) != 0) {
+				snprintf(g_loadError, sizeof g_loadError, "error.nbasic_mismatch");
+				return 0;
+			}
+			memcpy(g_nbasicLow, n88n, sizeof g_nbasicLow);
+			g_nbasicFromN88N = 1;
 		}
 	}
 	/* a ROM the settings leave out is not read even when it is mounted:
@@ -472,6 +495,7 @@ ECL_EXPORT int Init(void)
 		if (config_image.t[CLOAD]) strcpy(config_image.t[CLOAD], g_tapes[g_tapeInserted]);
 	}
 	quasi88_start();
+	if (g_nbasicFromN88N) memcpy(main_rom_n, g_nbasicLow, sizeof g_nbasicLow);
 	/* a disk or tape QUASI88 could not open is not in its drive */
 	for (i = 0; i < 2; i++)
 		if (g_inserted[i] >= 0 && !drive_holds_disk(i)) g_inserted[i] = -1;

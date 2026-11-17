@@ -138,6 +138,12 @@ const char *chimera_file_name(int i) { return i >= 0 && i < g_fileCount ? g_file
 int chimera_file_written(int i) { return i >= 0 && i < g_fileCount && g_files[i].written; }
 int64_t chimera_file_size(int i) { return i >= 0 && i < g_fileCount ? g_files[i].size : 0; }
 const uint8_t *chimera_file_data(int i) { return i >= 0 && i < g_fileCount ? g_files[i].data : NULL; }
+const uint8_t *chimera_file_bytes(const char *name, int64_t *len)
+{
+	int i = vfile_find(name);
+	if (len) *len = i < 0 ? -1 : g_files[i].size;
+	return i < 0 ? NULL : g_files[i].data;
+}
 
 /* ------------------------------------------------------------ settings */
 

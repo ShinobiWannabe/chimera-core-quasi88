@@ -193,7 +193,7 @@ SETTINGS = [
               "V2 is N88-BASIC V2, the mode almost every game is written for and the default. V1H and V1S "
               "are the older N88-BASIC V1 in its fast and standard speeds, and N is N-BASIC, the PC-8001 "
               "compatible mode a few early games need; it needs N-BASIC, which is in a 112 KiB PC88.ROM or in "
-              "N88N.ROM (Separate files), not in an 88 KiB PC88.ROM." + SAME},
+              "N88N.ROM. With an 88 KiB PC88.ROM, the N mode asks for the same machine's N88N.ROM too." + SAME},
     {"name": "cpuClock", "type": "enum", "default": "4MHz", "options": ["4MHz", "8MHz"], "sync": True,
      "display": "CPU Clock",
      "about": "The speed of the main CPU. 4MHz is the PC-8801mkIISR's, and the default; 8MHz is the "
@@ -298,7 +298,7 @@ FIRMWARE = [
     ("n88_1.rom", 8192, "N88-BASIC V2 ROM, bank 1", "The second of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_1.ROM or N88EXT1.ROM).", ["n88_1", "n88ext1"], SEPARATE),
     ("n88_2.rom", 8192, "N88-BASIC V2 ROM, bank 2", "The third of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_2.ROM or N88EXT2.ROM).", ["n88_2", "n88ext2"], SEPARATE),
     ("n88_3.rom", 8192, "N88-BASIC V2 ROM, bank 3", "The fourth of the four 8 KiB banks of N88-BASIC V2's fourth ROM (N88_3.ROM or N88EXT3.ROM).", ["n88_3", "n88ext3"], SEPARATE),
-    ("n88n.rom", 32768, "N-BASIC ROM", "The N-BASIC ROM of the same machine (32 KiB, N88N.ROM or N80.ROM), for the N mode.", ["n88n", "n80"], SEPARATE),
+    ("n88n.rom", 32768, "N-BASIC ROM", "The N-BASIC ROM of the same machine (32 KiB, N88N.ROM or N80.ROM), for the N mode. With an 88 KiB PC88.ROM, which lacks N-BASIC, the N mode takes N-BASIC from here, as M88 does; it must be the N-BASIC of the machine the PC88.ROM is from (its last 8 KiB are the copy PC88.ROM holds), or the machine does not start. A 112 KiB PC88.ROM uses its own N-BASIC and leaves this file unread.", ["n88n", "n80"], {"any": [SEPARATE, {"setting": "basicMode", "is": "N"}]}),
     ("disk.rom", 0, "Disk unit ROM", "The ROM of the floppy disk unit's own CPU (DISK.ROM or N88SUB.ROM, 2 or 8 KiB).", ["disk", "n88sub"], SEPARATE),
     ("kanji1.rom", 131072, "Level 1 kanji ROM", "The level 1 kanji ROM (128 KiB, KANJI1.ROM or N88KNJ1.ROM). The machine's text font is taken from it too.", ["kanji1", "knj1"], None),
     ("kanji2.rom", 131072, "Level 2 kanji ROM", "The level 2 kanji ROM (128 KiB, KANJI2.ROM or N88KNJ2.ROM).", ["kanji2", "knj2"], {"setting": "kanjiLevel2", "is": True}),
@@ -328,7 +328,8 @@ CODE_TEXTS = {
     "error.start_failed": "QUASI88 could not start the machine. Check that the firmware is there.",
     "error.no_firmware": "The firmware file %1 is missing.",
     "error.bad_firmware_size": "The firmware file %1 is %2 bytes, a size this core cannot use. PC88.ROM must be 90112 or 114688 bytes, DISK.ROM 2048 or 8192.",
-    "error.no_nbasic": "BASIC Mode N needs N-BASIC: a 112 KiB PC88.ROM, or Separate files with N88N.ROM. This PC88.ROM is 88 KiB.",
+    "error.no_nbasic": "BASIC Mode N needs N-BASIC: a 112 KiB PC88.ROM, or N88N.ROM beside an 88 KiB one. This PC88.ROM is 88 KiB and there is no N88N.ROM.",
+    "error.nbasic_mismatch": "N88N.ROM is not the N-BASIC of the machine this PC88.ROM is from: its last 8 KiB differ from the copy PC88.ROM holds. Pick the N88N.ROM that came with this PC88.ROM, or use a 112 KiB PC88.ROM.",
 }
 
 # ------------------------------------------------------------------ write

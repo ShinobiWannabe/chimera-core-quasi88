@@ -80,7 +80,10 @@ game() {	# file -> path, or empty
 
 # ---- firmware: the sizes Init takes and refuses ----
 # PC88.ROM comes as 88 KiB, or 112 KiB with the whole of N-BASIC; the
-# declarations take any size, so the driver's Init is what checks.
+# declarations take any size, so the driver's Init is what checks. With an
+# 88 KiB one the N mode takes N-BASIC from N88N.ROM, which must end in the
+# 8 KiB PC88.ROM holds at 8000h: one made to match starts, one that does
+# not gives error.nbasic_mismatch.
 fwsize() {	# name settings-json -> the Init line of run-native, or "ok"
 	printf '%s' "$2" > "$work/fw/settings"
 	if $native "$work/fw" 1 > /dev/null 2> "$work/fw.err"; then echo ok; else grep -o 'error\.[a-z_]*' "$work/fw.err" | head -1; fi
@@ -91,14 +94,20 @@ len=$(wc -c < "$pc88")
 if [ "$len" -eq 90112 ] || [ "$len" -eq 114688 ]; then
 	head -c 90112 "$pc88" > "$work/fw/pc88.rom"
 	r1=$(fwsize pc88.rom '{"bootFrom":"ROM"}'); r2=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
+	{ head -c 24576 /dev/zero; dd if="$pc88" bs=8192 skip=4 count=1 2>/dev/null; } > "$work/fw/n88n.rom"
+	r5=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
+	head -c 32768 /dev/zero > "$work/fw/n88n.rom"
+	r6=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
+	rm -f "$work/fw/n88n.rom"
 	head -c 80000 "$pc88" > "$work/fw/pc88.rom"
 	r3=$(fwsize pc88.rom '{"bootFrom":"ROM"}')
 	{ head -c 90112 "$pc88"; head -c 24576 /dev/zero | tr '\000' '\377'; } > "$work/fw/pc88.rom"
 	[ "$len" -eq 114688 ] && cp "$pc88" "$work/fw/pc88.rom"
 	r4=$(fwsize pc88.rom '{"bootFrom":"ROM","basicMode":"N"}')
-	if [ "$r1" = ok ] && [ "$r2" = error.no_nbasic ] && [ "$r3" = error.bad_firmware_size ] && [ "$r4" = ok ]; then
-		ok "firmware: 88 KiB PC88.ROM starts, refuses N mode; 112 KiB starts N mode; 80000 bytes is refused"
-	else bad "firmware sizes: 88K=$r1, 88K N=$r2, 80000=$r3, 112K N=$r4"; fi
+	if [ "$r1" = ok ] && [ "$r2" = error.no_nbasic ] && [ "$r5" = ok ] && [ "$r6" = error.nbasic_mismatch ] && \
+	   [ "$r3" = error.bad_firmware_size ] && [ "$r4" = ok ]; then
+		ok "firmware: 88 KiB PC88.ROM starts; its N mode needs a matching N88N.ROM; 112 KiB starts N mode; 80000 bytes is refused"
+	else bad "firmware sizes: 88K=$r1, 88K N=$r2, 88K N + matching N88N=$r5, + other N88N=$r6, 80000=$r3, 112K N=$r4"; fi
 else
 	skp "firmware sizes: PC88.ROM is $len bytes, neither 90112 nor 114688"
 fi
